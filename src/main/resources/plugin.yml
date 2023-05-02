@@ -1,0 +1,6 @@
+name: holodorokei
+api-version: 1.19
+version: ${version}
+main: com.github.kbinani.holodorokei.Main
+commands:
+  holodorokei:
