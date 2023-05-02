@@ -213,7 +213,7 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private void scheduleNewGame(GameSetting setting) {
-        game = new Game(setting);
+        game = new Game(world, setting);
         this.setting = new GameSetting();
         //TODO:
     }
