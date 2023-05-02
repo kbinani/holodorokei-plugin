@@ -2,9 +2,7 @@ package com.github.kbinani.holodorokei;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -39,5 +37,29 @@ class Editor {
 
     public static void WallSign(@Nonnull World world, Point3i p, BlockFace facing, DyeColor color, String line2) {
         WallSign(world, p, facing, color, line2, "");
+    }
+
+    public static void Fill(@Nonnull World world, Point3i from, Point3i to, String blockDataString) {
+        Server server = Bukkit.getServer();
+        BlockData blockData = null;
+        try {
+            blockData = server.createBlockData(blockDataString);
+        } catch (Throwable e) {
+            e.printStackTrace(System.err);
+            return;
+        }
+        int x0 = Math.min(from.x, to.x);
+        int y0 = Math.min(from.y, to.y);
+        int z0 = Math.min(from.z, to.z);
+        int x1 = Math.max(from.x, to.x);
+        int y1 = Math.max(from.y, to.y);
+        int z1 = Math.max(from.z, to.z);
+        for (int y = y0; y <= y1; y++) {
+            for (int z = z0; z <= z1; z++) {
+                for (int x = x0; x <= x1; x++) {
+                    world.setBlockData(x, y, z, blockData);
+                }
+            }
+        }
     }
 }
