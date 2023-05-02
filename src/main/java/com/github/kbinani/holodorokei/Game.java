@@ -9,6 +9,11 @@ import org.bukkit.inventory.Inventory;
 public class Game {
     final GameSetting setting;
     final World world;
+    final SoraStation soraStation = new SoraStation();
+    final SikeMura sikeMura = new SikeMura();
+    final ShiranuiKensetsuBuilding shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding();
+    final DododoTown dododoTown = new DododoTown();
+    final Area[] areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
 
     Game(World world, GameSetting setting) {
         this.world = world;
@@ -25,6 +30,9 @@ public class Game {
             Inventory inventory = container.getInventory();
             inventory.clear();
         }
+        for (var area : areas) {
+            area.initialize(world);
+        }
     }
 
     int getNumCops() {
@@ -37,6 +45,9 @@ public class Game {
 
     void terminate() {
         setting.reset();
+        for (var area : areas) {
+            area.reset(world);
+        }
     }
 
     private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);
