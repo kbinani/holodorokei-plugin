@@ -61,22 +61,40 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private void setup() {
-        Editor.WallSign(world, new Point3i(-15, -62, -14), BlockFace.NORTH, DyeColor.YELLOW, "ドロボウでエントリー", "");
-        Editor.WallSign(world, new Point3i(-16, -62, -14), BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（女幹部）");
-        Editor.WallSign(world, new Point3i(-17, -62, -14), BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（研究者）");
-        Editor.WallSign(world, new Point3i(-18, -62, -14), BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（掃除屋）");
+        Editor.WallSign(world, kButtonEntryThief, BlockFace.NORTH, DyeColor.YELLOW, "ドロボウでエントリー", "");
+        Editor.WallSign(world, kButtonEntryCopFemaleExecutive, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（女幹部）");
+        Editor.WallSign(world, kButtonEntryCopResearcher, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（研究者）");
+        Editor.WallSign(world, kButtonEntryCopCleaner, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（掃除屋）");
 
-        Editor.WallSign(world, new Point3i(7, -61, -14), BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（そらステーション）");
-        Editor.WallSign(world, new Point3i(6, -61, -14), BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（しけ村）");
-        Editor.WallSign(world, new Point3i(5, -61, -14), BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（ドドドタウン）");
-        Editor.WallSign(world, new Point3i(4, -61, -14), BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（不知火建設本社）");
+        Editor.WallSign(world, kButtonStartShortSoraStation, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（そらステーション）");
+        Editor.WallSign(world, kButtonStartShortSikeVillage, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（しけ村）");
+        Editor.WallSign(world, kButtonStartShortDododoTown, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（ドドドタウン）");
+        Editor.WallSign(world, kButtonStartShortShiranuiConstructionBuilding, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（不知火建設本社）");
 
-        Editor.WallSign(world, new Point3i(7, -62, -14), BlockFace.NORTH, DyeColor.CYAN, "通常版スタート");
-        Editor.WallSign(world, new Point3i(6, -62, -14), BlockFace.NORTH, DyeColor.WHITE, "リセット");
-        Editor.WallSign(world, new Point3i(5, -62, -14), BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "②");
-        Editor.WallSign(world, new Point3i(4, -62, -14), BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "③");
+        Editor.WallSign(world, kButtonStartNormal, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート");
+        Editor.WallSign(world, kButtonReset, BlockFace.NORTH, DyeColor.WHITE, "リセット");
+        Editor.WallSign(world, kButtonStartNormal1, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "②");
+        Editor.WallSign(world, kButtonStartNormal2, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "③");
 
-        Editor.WallSign(world, new Point3i(6, -63, -14), BlockFace.NORTH, DyeColor.GREEN, "運営でエントリー");
-        Editor.WallSign(world, new Point3i(5, -63, -14), BlockFace.NORTH, DyeColor.WHITE, "エントリー解除");
+        Editor.WallSign(world, kButtonEntryManager, BlockFace.NORTH, DyeColor.GREEN, "運営でエントリー");
+        Editor.WallSign(world, kButtonLeave, BlockFace.NORTH, DyeColor.WHITE, "エントリー解除");
     }
+
+    private final Point3i kButtonEntryThief = new Point3i(-15, -62, -14);
+    private final Point3i kButtonEntryCopFemaleExecutive = new Point3i(-16, -62, -14);
+    private final Point3i kButtonEntryCopResearcher = new Point3i(-17, -62, -14);
+    private final Point3i kButtonEntryCopCleaner = new Point3i(-18, -62, -14);
+
+    private final Point3i kButtonStartShortSoraStation = new Point3i(7, -61, -14);
+    private final Point3i kButtonStartShortSikeVillage = new Point3i(6, -61, -14);
+    private final Point3i kButtonStartShortDododoTown = new Point3i(5, -61, -14);
+    private final Point3i kButtonStartShortShiranuiConstructionBuilding = new Point3i(4, -61, -14);
+
+    private final Point3i kButtonStartNormal = new Point3i(7, -62, -14);
+    private final Point3i kButtonReset = new Point3i(6, -62, -14);
+    private final Point3i kButtonStartNormal1 = new Point3i(5, -62, -14);
+    private final Point3i kButtonStartNormal2 = new Point3i(4, -62, -14);
+
+    private final Point3i kButtonEntryManager = new Point3i(6, -63, -14);
+    private final Point3i kButtonLeave = new Point3i(5, -63, -14);
 }
