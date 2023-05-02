@@ -4,6 +4,10 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
 public class DododoTown extends Area {
+    DododoTown(World world) {
+        super(world);
+    }
+
     @Override
     String name() {
         return "ドドドタウン";

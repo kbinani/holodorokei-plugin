@@ -1,5 +1,6 @@
 package com.github.kbinani.holodorokei;
 
+import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.DyeColor;
@@ -75,6 +76,9 @@ public class Main extends JavaPlugin implements Listener {
         Player player = e.getPlayer();
         if (!player.getWorld().getUID().equals(world.getUID())) {
             return;
+        }
+        if (game != null) {
+            game.onPlayerInteract(e);
         }
         Block block = e.getClickedBlock();
         if (block == null) {
@@ -153,6 +157,18 @@ public class Main extends JavaPlugin implements Listener {
         } else if (location.equals(kButtonReset)) {
             onClickReset();
         }
+    }
+
+    @EventHandler
+    public void onEntityMove(EntityMoveEvent e) {
+        if (game == null) {
+            return;
+        }
+        var entity = e.getEntity();
+        if (!entity.getWorld().getUID().equals(world.getUID())) {
+            return;
+        }
+        game.onEntityMove(e);
     }
 
     private void setup() {

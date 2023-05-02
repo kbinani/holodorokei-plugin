@@ -1,23 +1,30 @@
 package com.github.kbinani.holodorokei;
 
+import io.papermc.paper.event.entity.EntityMoveEvent;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 
 public class Game {
     final GameSetting setting;
     final World world;
-    final SoraStation soraStation = new SoraStation();
-    final SikeMura sikeMura = new SikeMura();
-    final ShiranuiKensetsuBuilding shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding();
-    final DododoTown dododoTown = new DododoTown();
-    final Area[] areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
+    final SoraStation soraStation;
+    final SikeMura sikeMura;
+    final ShiranuiKensetsuBuilding shiranuiKensetsuBuilding;
+    final DododoTown dododoTown;
+    final Area[] areas;
 
     Game(World world, GameSetting setting) {
         this.world = world;
         this.setting = setting;
+        this.soraStation = new SoraStation(world);
+        this.sikeMura = new SikeMura(world);
+        this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world);
+        this.dododoTown = new DododoTown(world);
+        this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
     }
 
     void start() {
@@ -31,7 +38,7 @@ public class Game {
             inventory.clear();
         }
         for (var area : areas) {
-            area.initialize(world);
+            area.initialize();
         }
     }
 
@@ -46,7 +53,19 @@ public class Game {
     void terminate() {
         setting.reset();
         for (var area : areas) {
-            area.reset(world);
+            area.reset();
+        }
+    }
+
+    void onPlayerInteract(PlayerInteractEvent e) {
+        for (var area : areas) {
+            area.onPlayerInteract(e);
+        }
+    }
+
+    void onEntityMove(EntityMoveEvent e) {
+        for (var area : areas) {
+            area.onEntityMove(e);
         }
     }
 

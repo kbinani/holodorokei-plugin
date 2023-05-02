@@ -4,6 +4,10 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
 public class SikeMura extends Area {
+    SikeMura(World world) {
+        super(world);
+    }
+
     @Override
     String name() {
         return "しけ村";

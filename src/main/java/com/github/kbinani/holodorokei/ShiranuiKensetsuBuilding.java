@@ -4,6 +4,10 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
 public class ShiranuiKensetsuBuilding extends Area {
+    ShiranuiKensetsuBuilding(World world) {
+        super(world);
+    }
+
     @Override
     String name() {
         return "不知火建設本社";
