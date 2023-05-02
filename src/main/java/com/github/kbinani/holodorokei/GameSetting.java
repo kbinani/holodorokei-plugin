@@ -144,4 +144,22 @@ public class GameSetting {
         }
         return null;
     }
+
+    int getNumCops() {
+        int count = 0;
+        if (femaleExecutive != null) {
+            count++;
+        }
+        if (researcher != null) {
+            count++;
+        }
+        if (cleaner != null) {
+            count++;
+        }
+        return count;
+    }
+
+    int getNumThieves() {
+        return thieves.size();
+    }
 }

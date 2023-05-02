@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BoundingBox;
 
 import java.util.Optional;
 import java.util.logging.Level;
@@ -215,7 +216,17 @@ public class Main extends JavaPlugin implements Listener {
     private void scheduleNewGame(GameSetting setting) {
         game = new Game(world, setting);
         this.setting = new GameSetting();
-        //TODO:
+        var server = getServer();
+        server.sendMessage(Component.empty());
+        server.sendMessage(Component.text(String.format("ゲームを開始します！（ドロボウ：%d人、ケイサツ：%d人）", game.getNumThieves(), game.getNumCops())));
+        server.sendMessage(Component.empty());
+        Countdown.Then(world, new BoundingBox[]{field}, this, (count) -> this.game != null, () -> {
+            if (this.game == null) {
+                return false;
+            }
+            this.game.start();
+            return true;
+        }, 20);
     }
 
     private final Point3i kButtonEntryThief = new Point3i(-15, -62, -14);
@@ -235,4 +246,6 @@ public class Main extends JavaPlugin implements Listener {
 
     private final Point3i kButtonEntryManager = new Point3i(6, -63, -14);
     private final Point3i kButtonLeave = new Point3i(5, -63, -14);
+
+    private final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
 }

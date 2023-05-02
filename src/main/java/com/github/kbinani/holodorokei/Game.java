@@ -15,7 +15,7 @@ public class Game {
         this.setting = setting;
     }
 
-    void initialize() {
+    void start() {
         for (var pos : new Point3i[]{kContainerChestDeliveryPost, kContainerHopperDeliveryPost}) {
             Block block = world.getBlockAt(pos.x, pos.y, pos.z);
             BlockState state = block.getState();
@@ -25,6 +25,14 @@ public class Game {
             Inventory inventory = container.getInventory();
             inventory.clear();
         }
+    }
+
+    int getNumCops() {
+        return this.setting.getNumCops();
+    }
+
+    int getNumThieves() {
+        return this.setting.getNumThieves();
     }
 
     void terminate() {
