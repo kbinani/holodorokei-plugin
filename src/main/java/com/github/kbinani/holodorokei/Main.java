@@ -2,10 +2,14 @@ package com.github.kbinani.holodorokei;
 
 import org.bukkit.DyeColor;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -60,6 +64,66 @@ public class Main extends JavaPlugin implements Listener {
         }
     }
 
+    @EventHandler
+    @SuppressWarnings("unused")
+    public void onPlayerInteract(PlayerInteractEvent e) {
+        Player player = e.getPlayer();
+        if (!player.getWorld().getUID().equals(world.getUID())) {
+            return;
+        }
+        Block block = e.getClickedBlock();
+        if (block == null) {
+            return;
+        }
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        Point3i location = new Point3i(block.getLocation());
+        if (location.equals(kButtonEntryThief)) {
+            onClickJoin(player, Role.THIEF);
+        } else if (location.equals(kButtonEntryCopFemaleExecutive)) {
+            onClickJoin(player, Role.FEMALE_EXECUTIVE);
+        } else if (location.equals(kButtonEntryCopResearcher)) {
+            onClickJoin(player, Role.RESEARCHER);
+        } else if (location.equals(kButtonEntryCopCleaner)) {
+            onClickJoin(player, Role.CLEANER);
+        } else if (location.equals(kButtonEntryManager)) {
+            onClickJoin(player, Role.MANAGER);
+        } else if (location.equals(kButtonLeave)) {
+            onClickLeave(player);
+        } else if (location.equals(kButtonStartShortSoraStation)) {
+            var s = new GameSetting();
+            //TODO:
+            scheduleNewGame(s);
+        } else if (location.equals(kButtonStartShortSikeVillage)) {
+            var s = new GameSetting();
+            //TODO:
+            scheduleNewGame(s);
+        } else if (location.equals(kButtonStartShortDododoTown)) {
+            var s = new GameSetting();
+            //TODO:
+            scheduleNewGame(s);
+        } else if (location.equals(kButtonStartShortShiranuiConstructionBuilding)) {
+            var s = new GameSetting();
+            //TODO:
+            scheduleNewGame(s);
+        } else if (location.equals(kButtonStartNormal1)) {
+            var s = new GameSetting();
+            //TODO:
+            scheduleNewGame(s);
+        } else if (location.equals(kButtonStartNormal2)) {
+            var s = new GameSetting();
+            //TODO:
+            scheduleNewGame(s);
+        } else if (location.equals(kButtonStartNormal3)) {
+            var s = new GameSetting();
+            //TODO:
+            scheduleNewGame(s);
+        } else if (location.equals(kButtonReset)) {
+            onClickReset();
+        }
+    }
+
     private void setup() {
         Editor.WallSign(world, kButtonEntryThief, BlockFace.NORTH, DyeColor.YELLOW, "ドロボウでエントリー", "");
         Editor.WallSign(world, kButtonEntryCopFemaleExecutive, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（女幹部）");
@@ -71,13 +135,34 @@ public class Main extends JavaPlugin implements Listener {
         Editor.WallSign(world, kButtonStartShortDododoTown, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（ドドドタウン）");
         Editor.WallSign(world, kButtonStartShortShiranuiConstructionBuilding, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（不知火建設本社）");
 
-        Editor.WallSign(world, kButtonStartNormal, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート");
+        Editor.WallSign(world, kButtonStartNormal1, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート");
         Editor.WallSign(world, kButtonReset, BlockFace.NORTH, DyeColor.WHITE, "リセット");
-        Editor.WallSign(world, kButtonStartNormal1, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "②");
-        Editor.WallSign(world, kButtonStartNormal2, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "③");
+        Editor.WallSign(world, kButtonStartNormal2, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "②");
+        Editor.WallSign(world, kButtonStartNormal3, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "③");
 
         Editor.WallSign(world, kButtonEntryManager, BlockFace.NORTH, DyeColor.GREEN, "運営でエントリー");
         Editor.WallSign(world, kButtonLeave, BlockFace.NORTH, DyeColor.WHITE, "エントリー解除");
+    }
+
+    private void reset() {
+        this.setup();
+        //TODO:
+    }
+
+    private void onClickJoin(Player player, Role role) {
+        //TODO:
+    }
+
+    private void onClickLeave(Player player) {
+        //TODO:
+    }
+
+    private void onClickReset() {
+        reset();
+    }
+
+    private void scheduleNewGame(GameSetting setting) {
+        //TODO:
     }
 
     private final Point3i kButtonEntryThief = new Point3i(-15, -62, -14);
@@ -90,10 +175,10 @@ public class Main extends JavaPlugin implements Listener {
     private final Point3i kButtonStartShortDododoTown = new Point3i(5, -61, -14);
     private final Point3i kButtonStartShortShiranuiConstructionBuilding = new Point3i(4, -61, -14);
 
-    private final Point3i kButtonStartNormal = new Point3i(7, -62, -14);
+    private final Point3i kButtonStartNormal1 = new Point3i(7, -62, -14);
     private final Point3i kButtonReset = new Point3i(6, -62, -14);
-    private final Point3i kButtonStartNormal1 = new Point3i(5, -62, -14);
-    private final Point3i kButtonStartNormal2 = new Point3i(4, -62, -14);
+    private final Point3i kButtonStartNormal2 = new Point3i(5, -62, -14);
+    private final Point3i kButtonStartNormal3 = new Point3i(4, -62, -14);
 
     private final Point3i kButtonEntryManager = new Point3i(6, -63, -14);
     private final Point3i kButtonLeave = new Point3i(5, -63, -14);
