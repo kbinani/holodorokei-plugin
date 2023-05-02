@@ -264,5 +264,5 @@ public class Main extends JavaPlugin implements Listener {
     private final Point3i kButtonEntryManager = new Point3i(6, -63, -14);
     private final Point3i kButtonLeave = new Point3i(5, -63, -14);
 
-    private final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
+    public static final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
 }
