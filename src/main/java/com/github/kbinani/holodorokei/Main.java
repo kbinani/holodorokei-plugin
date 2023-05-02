@@ -1,5 +1,7 @@
 package com.github.kbinani.holodorokei;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.DyeColor;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -20,6 +22,8 @@ import java.util.logging.Level;
 public class Main extends JavaPlugin implements Listener {
     private World world;
     private boolean initialized = false;
+    private Game game;
+    private GameSetting setting = new GameSetting();
 
     @Override
     public void onEnable() {
@@ -80,45 +84,71 @@ public class Main extends JavaPlugin implements Listener {
         }
         Point3i location = new Point3i(block.getLocation());
         if (location.equals(kButtonEntryThief)) {
-            onClickJoin(player, Role.THIEF);
+            if (game == null) {
+                onClickJoin(player, Role.THIEF);
+            }
         } else if (location.equals(kButtonEntryCopFemaleExecutive)) {
-            onClickJoin(player, Role.FEMALE_EXECUTIVE);
+            if (game == null) {
+                onClickJoin(player, Role.FEMALE_EXECUTIVE);
+            }
         } else if (location.equals(kButtonEntryCopResearcher)) {
-            onClickJoin(player, Role.RESEARCHER);
+            if (game == null) {
+                onClickJoin(player, Role.RESEARCHER);
+            }
         } else if (location.equals(kButtonEntryCopCleaner)) {
-            onClickJoin(player, Role.CLEANER);
+            if (game == null) {
+                onClickJoin(player, Role.CLEANER);
+            }
         } else if (location.equals(kButtonEntryManager)) {
-            onClickJoin(player, Role.MANAGER);
+            if (game == null) {
+                onClickJoin(player, Role.MANAGER);
+            }
         } else if (location.equals(kButtonLeave)) {
-            onClickLeave(player);
+            if (game == null) {
+                onClickLeave(player);
+            }
         } else if (location.equals(kButtonStartShortSoraStation)) {
-            var s = new GameSetting();
-            //TODO:
-            scheduleNewGame(s);
+            if (game == null) {
+                var s = this.setting;
+                //TODO:
+                scheduleNewGame(s);
+            }
         } else if (location.equals(kButtonStartShortSikeVillage)) {
-            var s = new GameSetting();
-            //TODO:
-            scheduleNewGame(s);
+            if (game == null) {
+                var s = this.setting;
+                //TODO:
+                scheduleNewGame(s);
+            }
         } else if (location.equals(kButtonStartShortDododoTown)) {
-            var s = new GameSetting();
-            //TODO:
-            scheduleNewGame(s);
+            if (game == null) {
+                var s = this.setting;
+                //TODO:
+                scheduleNewGame(s);
+            }
         } else if (location.equals(kButtonStartShortShiranuiConstructionBuilding)) {
-            var s = new GameSetting();
-            //TODO:
-            scheduleNewGame(s);
+            if (game == null) {
+                var s = this.setting;
+                //TODO:
+                scheduleNewGame(s);
+            }
         } else if (location.equals(kButtonStartNormal1)) {
-            var s = new GameSetting();
-            //TODO:
-            scheduleNewGame(s);
+            if (game == null) {
+                var s = this.setting;
+                //TODO:
+                scheduleNewGame(s);
+            }
         } else if (location.equals(kButtonStartNormal2)) {
-            var s = new GameSetting();
-            //TODO:
-            scheduleNewGame(s);
+            if (game == null) {
+                var s = this.setting;
+                //TODO:
+                scheduleNewGame(s);
+            }
         } else if (location.equals(kButtonStartNormal3)) {
-            var s = new GameSetting();
-            //TODO:
-            scheduleNewGame(s);
+            if (game == null) {
+                var s = this.setting;
+                //TODO:
+                scheduleNewGame(s);
+            }
         } else if (location.equals(kButtonReset)) {
             onClickReset();
         }
@@ -145,16 +175,37 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private void reset() {
-        this.setup();
-        //TODO:
+        setup();
+        if (game != null) {
+            game.terminate();
+            game = null;
+        }
+        if (setting != null) {
+            setting.reset();
+        }
+        setting = new GameSetting();
+        Teams.Reset();
+        getServer().sendMessage(Component.text("全ての進行状況をリセットしました"));
     }
 
     private void onClickJoin(Player player, Role role) {
-        //TODO:
+        var result = setting.join(player, role);
+        if (result == null) {
+            return;
+        }
+        if (result.error != null) {
+            player.sendMessage(Component.text(result.error).color(NamedTextColor.RED));
+        }
+        if (result.ok != null) {
+            getServer().sendMessage(result.ok);
+        }
     }
 
     private void onClickLeave(Player player) {
-        //TODO:
+        var result = setting.leave(player);
+        if (result != null) {
+            getServer().sendMessage(Component.text(result));
+        }
     }
 
     private void onClickReset() {
@@ -162,6 +213,8 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private void scheduleNewGame(GameSetting setting) {
+        game = new Game(setting);
+        this.setting = new GameSetting();
         //TODO:
     }
 
