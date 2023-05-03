@@ -172,6 +172,7 @@ public class SikeMura extends Area {
       new ChestPosition(14, -60, -98, BlockFace.NORTH),
       new ChestPosition(44, -60, -75, BlockFace.NORTH),
       new ChestPosition(44, -59, -67, BlockFace.SOUTH),
+      new ChestPosition(71, -56, -63, BlockFace.WEST),
     };
   }
 
