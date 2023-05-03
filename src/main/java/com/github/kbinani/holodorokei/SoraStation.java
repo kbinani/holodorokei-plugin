@@ -150,6 +150,7 @@ public class SoraStation extends Area {
       e.setCancelled(true);
       clickOrder.add(member);
       if (!clicked.contains(member)) {
+        clicked.add(member);
         World world = e.getPlayer().getWorld();
         world.setBlockData(-40 + 2 * index, -48, -59, Material.REDSTONE_BLOCK.createBlockData());
       }
@@ -163,6 +164,14 @@ public class SoraStation extends Area {
         }
         if (ok) {
           return true;
+        }
+      }
+      if (clicked.size() == Member.values().length) {
+        // 全てクリックして不正解だった場合は全部消灯する
+        clicked.clear();
+        var world = e.getPlayer().getWorld();
+        for (int xx : new int[]{-32, -34, -36, -38, -40}) {
+          world.setBlockData(xx, -48, -59, Material.AIR.createBlockData());
         }
       }
       return false;
