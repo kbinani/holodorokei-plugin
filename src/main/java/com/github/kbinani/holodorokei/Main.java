@@ -219,9 +219,9 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private void onClickLeave(Player player) {
-        var result = setting.leave(player);
-        if (result != null) {
-            getServer().sendMessage(Component.text(result));
+        var name = player.teamDisplayName();
+        if (setting.leave(player)) {
+            getServer().sendMessage(name.append(Component.text("がエントリー解除しました").color(NamedTextColor.WHITE)));
         }
     }
 

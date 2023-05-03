@@ -116,33 +116,33 @@ public class GameSetting {
         return null;
     }
 
-    @Nullable String leave(Player player) {
+    boolean leave(Player player) {
         if (femaleExecutive == player) {
             Teams.Instance().cop.removePlayer(player);
             femaleExecutive = null;
-            return player.getName() + "が ケイサツ（女幹部）のエントリーを解除しました";
+            return true;
         }
         if (researcher == player) {
             Teams.Instance().cop.removePlayer(player);
             researcher = null;
-            return player.getName() + "が ケイサツ（研究者）のエントリーを解除しました";
+            return true;
         }
         if (cleaner == player) {
             Teams.Instance().cop.removePlayer(player);
             cleaner = null;
-            return player.getName() + "が ケイサツ（掃除屋）のエントリーを解除しました";
+            return true;
         }
         if (managers.contains(player)) {
             Teams.Instance().manager.removePlayer(player);
             managers.remove(player);
-            return player.getName() + "が 運営 のエントリーを解除しました";
+            return true;
         }
         if (thieves.contains(player)) {
             Teams.Instance().thief.removePlayer(player);
             thieves.remove(player);
-            return player.getName() + "が ドロボウ のエントリーを解除しました";
+            return true;
         }
-        return null;
+        return false;
     }
 
     int getNumCops() {
