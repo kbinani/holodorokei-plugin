@@ -36,7 +36,6 @@ public class ProgressBoardSet {
         var closedAreas = game.getClosedAreas();
         if (closedAreas.length == 0) {
             common.add("封鎖エリア：なし");
-            common.add("封鎖エリア：なし");
         } else {
             for (var area : closedAreas) {
                 common.add("└" + area + "：封鎖");
