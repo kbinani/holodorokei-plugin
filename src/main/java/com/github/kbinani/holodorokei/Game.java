@@ -6,6 +6,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -13,6 +15,9 @@ import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
@@ -120,6 +125,83 @@ public class Game {
     mainBossBar.update();
 
     bossBarsUpdateTimer = scheduler.runTaskTimer(delegate.mainDelegateGetOwner(), this::updateBossBars, 20, 20);
+
+    thieves.forEach(this::giveThieveItems);
+    if (setting.femaleExecutive != null) {
+      giveCopItems(setting.femaleExecutive);
+    }
+    if (setting.researcher != null) {
+      giveCopItems(setting.researcher);
+    }
+    if (setting.cleaner != null) {
+      giveCopItems(setting.cleaner);
+    }
+  }
+
+  private void giveThieveItems(Player player) {
+    var inventory = player.getInventory();
+    inventory.clear();
+
+    var pickaxe = new ItemStack(Material.IRON_PICKAXE);
+    addItemTag(pickaxe);
+    var pickaxeMeta = pickaxe.getItemMeta();
+    if (pickaxeMeta != null) {
+      pickaxeMeta.displayName(Component.text("スキル発掘ピッケル"));
+      pickaxeMeta.setDestroyableKeys(List.of(NamespacedKey.minecraft("beacon")));
+      pickaxe.setItemMeta(pickaxeMeta);
+    }
+    inventory.setItem(0, pickaxe);
+
+    var stick = new ItemStack(Material.CARROT_ON_A_STICK);
+    addItemTag(stick);
+    var stickMeta = stick.getItemMeta();
+    if (stickMeta != null) {
+      stickMeta.displayName(Component.text("ホロ杖"));
+      stick.setItemMeta(stickMeta);
+    }
+    inventory.setItem(1, stick);
+
+    var potion = new ItemStack(Material.SPLASH_POTION);
+    addItemTag(potion);
+    var potionMeta = potion.getItemMeta();
+    if (potionMeta != null) {
+      potionMeta.displayName(Component.text("自首用ポーション"));
+      potion.setItemMeta(potionMeta);
+    }
+    inventory.setItem(2, potion);
+  }
+
+  private void giveCopItems(Player player) {
+    var inventory = player.getInventory();
+    inventory.clear();
+
+    var stick = new ItemStack(Material.CARROT_ON_A_STICK);
+    addItemTag(stick);
+    var stickMeta = stick.getItemMeta();
+    if (stickMeta != null) {
+      stickMeta.displayName(Component.text("ホロ杖"));
+      stick.setItemMeta(stickMeta);
+    }
+    inventory.setItem(0, stick);
+
+    var potion = new ItemStack(Material.SPLASH_POTION);
+    addItemTag(potion);
+    var potionMeta = potion.getItemMeta();
+    if (potionMeta != null) {
+      potionMeta.displayName(Component.text("自首用ポーション"));
+      potion.setItemMeta(potionMeta);
+    }
+    inventory.setItem(1, potion);
+  }
+
+  private void addItemTag(ItemStack item) {
+    var meta = item.getItemMeta();
+    if (meta == null) {
+      return;
+    }
+    PersistentDataContainer container = meta.getPersistentDataContainer();
+    container.set(NamespacedKey.minecraft(kItemTag), PersistentDataType.BYTE, (byte) 1);
+    item.setItemMeta(meta);
   }
 
   private int getRemainingGameSeconds() {
@@ -211,6 +293,21 @@ public class Game {
     if (missionBossBar != null) {
       missionBossBar.cleanup();
       missionBossBar = null;
+    }
+    for (var p : thieves) {
+      p.getInventory().clear();
+    }
+    for (var p : prisoners) {
+      p.getInventory().clear();
+    }
+    if (setting.femaleExecutive != null) {
+      setting.femaleExecutive.getInventory().clear();
+    }
+    if (setting.researcher != null) {
+      setting.researcher.getInventory().clear();
+    }
+    if (setting.cleaner != null) {
+      setting.cleaner.getInventory().clear();
     }
   }
 
@@ -372,4 +469,5 @@ public class Game {
 
   private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);
   private final Point3i kContainerHopperDeliveryPost = new Point3i(-5, -61, -25);
+  private final String kItemTag = "holodorokei_item";
 }
