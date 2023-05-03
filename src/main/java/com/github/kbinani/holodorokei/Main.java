@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.PluginManager;
@@ -158,6 +159,17 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
       return;
     }
     game.onEntityMove(e);
+  }
+
+  @EventHandler
+  public void onEntityDamage(EntityDamageEvent e) {
+    if (e.getCause() != EntityDamageEvent.DamageCause.FALL) {
+      return;
+    }
+    if (!(e.getEntity() instanceof Player player)) {
+      return;
+    }
+    e.setCancelled(true);
   }
 
   private void setup() {
