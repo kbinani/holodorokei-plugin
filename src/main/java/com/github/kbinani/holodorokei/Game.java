@@ -14,6 +14,8 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -365,6 +367,25 @@ public class Game {
     } else {
       player.deactivateSkill();
     }
+  }
+
+  void onBlockBreak(BlockBreakEvent e) {
+    var player = findPlayer(e.getPlayer(), false);
+    if (player == null) {
+      return;
+    }
+    if (player.role != Role.THIEF) {
+      return;
+    }
+    var block = e.getBlock();
+    if (block.getType() != Material.BEACON) {
+      return;
+    }
+    player.selectSkill();
+  }
+
+  void onBlockDropItem(BlockDropItemEvent e) {
+    e.setCancelled(true);
   }
 
   private void applyPotionEffect(EffectTarget target, PotionEffect effect) {

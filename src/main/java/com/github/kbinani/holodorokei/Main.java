@@ -11,6 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -179,6 +181,22 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
       return;
     }
     game.onPlayerToggleSneak(e);
+  }
+
+  @EventHandler
+  public void onBlockBreak(BlockBreakEvent e) {
+    if (game == null) {
+      return;
+    }
+    game.onBlockBreak(e);
+  }
+
+  @EventHandler
+  public void onBlockDropItem(BlockDropItemEvent e) {
+    if (game == null) {
+      return;
+    }
+    game.onBlockDropItem(e);
   }
 
   private void setup() {
