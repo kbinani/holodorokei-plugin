@@ -1,16 +1,49 @@
 package com.github.kbinani.holodorokei;
 
-public enum MissionStatus {
-    WILL_START_18("18:00〜"),
-    WILL_START_12("12:00〜"),
-    WILL_START_6("6:00〜"),
-    IN_PROGRESS("発生中"),
-    SUCCESS("成功！"),
-    FAIL("失敗...");
+public class MissionStatus {
+    static MissionStatus Waiting(int v) {
+        if (v <= 0) {
+            throw new RuntimeException();
+        }
+        return new MissionStatus(v);
+    }
 
-    private MissionStatus(String rawValue) {
+    static MissionStatus InProgress() {
+        return new MissionStatus(0);
+    }
+
+    static MissionStatus Success() {
+        return new MissionStatus(-1);
+    }
+
+    static MissionStatus Fail() {
+        return new MissionStatus(-2);
+    }
+
+    private MissionStatus(int rawValue) {
         this.rawValue = rawValue;
     }
 
-    final String rawValue;
+    final int rawValue;
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MissionStatus s) {
+            return this.rawValue == s.rawValue;
+        } else {
+            return false;
+        }
+    }
+
+    String description() {
+        if (rawValue == 0) {
+            return "発生中";
+        } else if (rawValue == -1) {
+            return "成功！";
+        } else if (rawValue == -2) {
+            return "失敗...";
+        } else {
+            return String.format("%d:00〜", rawValue);
+        }
+    }
 }

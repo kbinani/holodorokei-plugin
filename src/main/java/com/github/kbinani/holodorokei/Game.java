@@ -36,9 +36,9 @@ public class Game {
         this.board = new ProgressBoardSet();
         //TODO: どのミッションを発生させるか抽選する
         this.missions = new AreaMission[]{
-                new AreaMission(soraStation.name(), MissionStatus.WILL_START_18),
-                new AreaMission(shiranuiKensetsuBuilding.name(), MissionStatus.WILL_START_12),
-                new AreaMission(sikeMura.name(), MissionStatus.WILL_START_6),
+                new AreaMission(soraStation.name(), MissionStatus.Waiting(18)),
+                new AreaMission(shiranuiKensetsuBuilding.name(), MissionStatus.Waiting(12)),
+                new AreaMission(sikeMura.name(), MissionStatus.Waiting(6)),
         };
     }
 

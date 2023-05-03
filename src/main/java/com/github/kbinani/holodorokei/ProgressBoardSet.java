@@ -62,28 +62,29 @@ public class ProgressBoardSet {
         var cop = new ArrayList<>(common);
         var manager = new ArrayList<>(common);
         var status = game.getAreaMissionStatus();
-        var prefix = new String[]{"①", "②", "③"};
-        for (int i = 0; i < 3 && i < status.length; i++) {
+
+        for (int i = 0; i < 20 && i < status.length; i++) {
+            // ① ~ ⑳
+            var prefix = new String(Character.toChars(0x2460 + i));
             var mission = status[i];
-            switch (mission.status()) {
-                case FAIL, SUCCESS -> {
-                    var line = "└" + prefix[i] + mission.name() + "：" + mission.status().rawValue;
-                    thief.add(line);
-                    cop.add(line);
-                    manager.add(line);
-                }
-                case IN_PROGRESS -> {
-                    var line = "└" + prefix[i] + mission.name() + "：" + mission.status().rawValue;
-                    thief.add(line);
-                    cop.add("└" + prefix[i] + "？？？：" + mission.status().rawValue);
-                    manager.add(line);
-                }
-                case WILL_START_6, WILL_START_12, WILL_START_18 -> {
-                    var line = "└" + prefix[i] + "？？？：" + mission.status().rawValue;
-                    thief.add(line);
-                    cop.add(line);
-                    manager.add("└" + prefix[i] + mission.name() + "：" + mission.status().rawValue);
-                }
+            var st = mission.status();
+            if (st.equals(MissionStatus.Fail()) || st.equals(MissionStatus.Success())) {
+                var line = "└" + prefix + mission.name() + "：" + mission.status().description();
+                thief.add(line);
+                cop.add(line);
+                manager.add(line);
+            } else if (st.equals(MissionStatus.InProgress())) {
+                var line = "└" + prefix + mission.name() + "：" + mission.status().rawValue;
+                thief.add(line);
+                cop.add("└" + prefix + "？？？：" + mission.status().rawValue);
+                manager.add(line);
+            } else {
+                var line = "└" + prefix + "？？？：" + mission.status().rawValue;
+                thief.add(line);
+                cop.add(line);
+                //NOTE: 本物は運営はドロボウ・ケイサツと同じのを表示している.
+                // けど実際運用する場合は次起こるミッションが見られたほうがいいはず
+                manager.add("└" + prefix + mission.name() + "：" + mission.status().rawValue);
             }
         }
 
