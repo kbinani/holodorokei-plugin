@@ -26,6 +26,7 @@ public class ProgressBoardSet {
             board.cleanup();
         }
         copBoard.cleanup();
+        managerBoard.cleanup();
     }
 
     void update(Game game) {
