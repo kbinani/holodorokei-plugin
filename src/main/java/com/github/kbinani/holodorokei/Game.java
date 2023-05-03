@@ -150,10 +150,15 @@ public class Game {
 
     bossBarsUpdateTimer = scheduler.runTaskTimer(delegate.mainDelegateGetOwner(), this::updateBossBars, 20, 20);
 
-    thieves.forEach(this::giveThieveItems);
-    Arrays.stream(cops).forEach(this::giveCopItems);
-
-    Arrays.stream(cops).forEach(PlayerTracking::selectSkill);
+    thieves.forEach(p -> {
+      giveThieveItems(p);
+      p.start();
+    });
+    Arrays.stream(cops).forEach(p -> {
+      giveCopItems(p);
+      p.selectSkill();
+      p.start();
+    });
   }
 
   private void giveThieveItems(PlayerTracking tracking) {
@@ -314,12 +319,15 @@ public class Game {
     }
     for (var t : thieves) {
       t.player.getInventory().clear();
+      t.cleanup();
     }
     for (var t : prisoners) {
       t.player.getInventory().clear();
+      t.cleanup();
     }
     for (var t : cops) {
       t.player.getInventory().clear();
+      t.cleanup();
     }
   }
 

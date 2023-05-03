@@ -13,12 +13,15 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 public class PlayerTracking {
+  //TODO: 途中でログアウトしてしまった場合 == で比較できなくなる。ログイン時に差し替える
   final Player player;
   final Role role;
   private @Nullable Skill skill;
   private @Nullable SkillType activeSkillType;
+  private long skillCoolDownMillis;
   private @Nullable BukkitTask coolDownTimer;
   private final @Nonnull MainDelegate delegate;
+  private @Nullable BukkitTask actionBarUpdateTimer;
 
   static Random sRandom = null;
 
@@ -88,6 +91,7 @@ public class PlayerTracking {
       return null;
     }
     activeSkillType = skill.type();
+    skillCoolDownMillis = System.currentTimeMillis() + (long) skill.coolDownSeconds() * 1000;
     var message = player.teamDisplayName().append(Component.text("が ").color(NamedTextColor.WHITE));
     if (role == Role.RESEARCHER) {
       message = message.append(Component.text(String.format("特殊能力：研究者（%s）", skill.type().description())).color(NamedTextColor.DARK_PURPLE));
@@ -100,6 +104,7 @@ public class PlayerTracking {
     player.sendMessage(message);
     var scheduler = Bukkit.getScheduler();
     coolDownTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), this::onCoolDown, skill.cooldownTicks());
+    restartActionBarUpdateTimer();
     if (skill.target() == EffectTarget.SELF) {
       player.addPotionEffect(effect);
       return null;
@@ -151,5 +156,54 @@ public class PlayerTracking {
       }
     }
     return sRandom.nextInt(bound);
+  }
+
+  private void updateActionBar() {
+    if (role == Role.MANAGER) {
+      return;
+    }
+    var component = Component.empty();
+    if (role == Role.THIEF) {
+      if (skill == null) {
+        component = Component.text("特殊能力：なし");
+      } else {
+        component = Component.text(String.format("特殊能力：%s", skill.type().description()));
+      }
+    } else {
+      if (role == Role.CLEANER) {
+        component = Component.text("特殊能力：掃除屋");
+      } else if (role == Role.FEMALE_EXECUTIVE) {
+        component = Component.text("特殊能力：女幹部");
+      } else if (role == Role.RESEARCHER) {
+        component = Component.text("特殊能力：研究者");
+      } else {
+        return;
+      }
+    }
+    var remaining = skillCoolDownMillis - System.currentTimeMillis();
+    if (remaining > 0) {
+      component = component.append(Component.text(String.format("（クールタイム中：あと%d秒）", (int) Math.round(remaining / 1000.0))).color(NamedTextColor.GOLD));
+    }
+    player.sendActionBar(component);
+  }
+
+  private void restartActionBarUpdateTimer() {
+    if (actionBarUpdateTimer != null) {
+      actionBarUpdateTimer.cancel();
+    }
+    updateActionBar();
+    actionBarUpdateTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::updateActionBar, 20, 20);
+  }
+
+  void start() {
+    updateActionBar();
+    actionBarUpdateTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::updateActionBar, 20, 20);
+  }
+
+  void cleanup() {
+    if (actionBarUpdateTimer != null) {
+      actionBarUpdateTimer.cancel();
+      actionBarUpdateTimer = null;
+    }
   }
 }
