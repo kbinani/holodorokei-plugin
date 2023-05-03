@@ -12,13 +12,14 @@ public class ProgressBoardSet {
 
 
     ProgressBoardSet() {
-        var thief = new ProgressBoard("holodorokei_thief", DisplaySlot.SIDEBAR_TEAM_YELLOW);
-        var prisoner = new ProgressBoard("holodorokei_prisoner", DisplaySlot.SIDEBAR_TEAM_DARK_PURPLE);
+        final var prefix = "holodorokei_";
+        var thief = new ProgressBoard(prefix + "thief", DisplaySlot.SIDEBAR_TEAM_YELLOW);
+        var prisoner = new ProgressBoard(prefix + "prisoner", DisplaySlot.SIDEBAR_TEAM_DARK_PURPLE);
         thiefBoards.add(thief);
         thiefBoards.add(prisoner);
 
-        managerBoard = new ProgressBoard("holodorokei_manager", DisplaySlot.SIDEBAR_TEAM_GREEN);
-        copBoard = new ProgressBoard("holodorokei_cop", DisplaySlot.SIDEBAR_TEAM_RED);
+        managerBoard = new ProgressBoard(prefix + "manager", DisplaySlot.SIDEBAR_TEAM_GREEN);
+        copBoard = new ProgressBoard(prefix + "cop", DisplaySlot.SIDEBAR_TEAM_RED);
     }
 
     void cleanup() {
