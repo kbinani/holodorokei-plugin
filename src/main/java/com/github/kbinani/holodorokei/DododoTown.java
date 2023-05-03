@@ -1,9 +1,76 @@
 package com.github.kbinani.holodorokei;
 
+import io.papermc.paper.event.entity.EntityMoveEvent;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Chest;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Sheep;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.loot.LootTables;
+import org.bukkit.util.BoundingBox;
 
 public class DododoTown extends Area {
+    static class CMission extends Mission {
+        final String kEntityTag = "holodorokei_dododotown";
+        final BoundingBox kGoalBox = new BoundingBox(-31, -60, 100, -24, -55, 107);
+
+        @Override
+        void start(World world) {
+            Editor.Fill(world, new Point3i(-128, -60, 21), new Point3i(-124, -60, 25), "birch_fence");
+            Editor.Fill(world, new Point3i(-127, -60, 22), new Point3i(-125, -60, 24), "air");
+            Editor.Fill(world, new Point3i(-128, -60, 23), new Point3i(-128, -60, 23), "birch_fence_gate[facing=east]");
+            Editor.Fill(world, new Point3i(-124, -60, 23), new Point3i(-124, -60, 23), "birch_fence_gate[facing=east]");
+
+            world.setBlockData(-126, -60, 26, Material.CHEST.createBlockData("[facing=south]"));
+            var block = world.getBlockAt(-126, -60, 26);
+            if (block.getState() instanceof Chest chest) {
+                var inventory = chest.getInventory();
+                for (int i = 0; i < inventory.getSize(); i++) {
+                    var item = new ItemStack(Material.LEAD, 1);
+                    inventory.setItem(i, item);
+                }
+            }
+
+            summonSheep(-126, -60, 23, world);
+        }
+
+        @Override
+        void cleanup(World world) {
+            Editor.Fill(world, new Point3i(-128, -60, 21), new Point3i(-124, -60, 25), "air");
+            world.setBlockData(-126, -60, 26, Material.AIR.createBlockData());
+            Kill.EntitiesByScoreboardTag(world, Main.field, kEntityTag);
+        }
+
+        @Override
+        boolean onPlayerInteract(PlayerInteractEvent e) {
+            return false;
+        }
+
+        @Override
+        boolean onEntityMove(EntityMoveEvent e) {
+            if (e.getEntity() instanceof Sheep sheep) {
+                return sheep.getScoreboardTags().contains(kEntityTag) && kGoalBox.contains(sheep.getLocation().toVector());
+            }
+            return false;
+        }
+
+        private void summonSheep(int x, int y, int z, World world) {
+            world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.SHEEP, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
+                Sheep sheep = (Sheep) it;
+                sheep.setAdult();
+                sheep.addScoreboardTag(kEntityTag);
+                sheep.setLootTable(LootTables.EMPTY.getLootTable());
+                sheep.setPersistent(true);
+                sheep.setCanPickupItems(false);
+            });
+        }
+    }
+
     DododoTown(World world) {
         super(world);
     }
@@ -46,7 +113,6 @@ public class DododoTown extends Area {
 
     @Override
     Mission initializeMission(World world) {
-        //TODO:
-        return null;
+        return new CMission();
     }
 }
