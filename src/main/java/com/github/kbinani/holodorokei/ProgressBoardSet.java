@@ -46,7 +46,7 @@ public class ProgressBoardSet {
       common.add("封鎖エリア：なし");
     } else {
       for (var area : closedAreas) {
-        common.add("└" + area + "：封鎖");
+        common.add("└" + area.description() + "：封鎖");
       }
     }
     common.add("+" + "-".repeat(16) + "+");
