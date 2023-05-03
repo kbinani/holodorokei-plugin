@@ -157,8 +157,8 @@ public class SikeMura extends Area {
   }
 
   @Override
-  String name() {
-    return "しけ村";
+  AreaType type() {
+    return AreaType.SIKE_MURA;
   }
 
   @Override

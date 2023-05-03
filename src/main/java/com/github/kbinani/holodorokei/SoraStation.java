@@ -178,8 +178,8 @@ public class SoraStation extends Area {
   }
 
   @Override
-  String name() {
-    return "そらステーション";
+  AreaType type() {
+    return AreaType.SORA_STATION;
   }
 
   @Override

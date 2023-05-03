@@ -18,12 +18,13 @@ public class Game {
   final Area[] areas;
   final ProgressBoardSet board;
 
-  private String[] closedAreas = new String[0];
-  private boolean soraStationDelivery = false;
-  private boolean sikeMuraDelivery = false;
-  private boolean dododoTownDelivery = false;
-  private boolean shiranuiKensetsuDelivery = false;
-  private AreaMission[] missions;
+  private AreaMissionStatus[] areaMissions = new AreaMissionStatus[]{};
+  private final DeliveryMissionStatus[] deliveryMissions = new DeliveryMissionStatus[]{
+    new DeliveryMissionStatus(AreaType.SORA_STATION, false),
+    new DeliveryMissionStatus(AreaType.SIKE_MURA, false),
+    new DeliveryMissionStatus(AreaType.SHIRANUI_KENSETSU, false),
+    new DeliveryMissionStatus(AreaType.DODODO_TOWN, false),
+  };
 
   Game(World world, GameSetting setting) {
     this.world = world;
@@ -35,10 +36,10 @@ public class Game {
     this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
     this.board = new ProgressBoardSet();
     //TODO: どのミッションを発生させるか抽選する
-    this.missions = new AreaMission[]{
-      new AreaMission(soraStation.name(), MissionStatus.Waiting(18)),
-      new AreaMission(shiranuiKensetsuBuilding.name(), MissionStatus.Waiting(12)),
-      new AreaMission(sikeMura.name(), MissionStatus.Waiting(6)),
+    this.areaMissions = new AreaMissionStatus[]{
+      new AreaMissionStatus(AreaType.SORA_STATION, MissionStatus.Waiting(18)),
+      new AreaMissionStatus(AreaType.SHIRANUI_KENSETSU, MissionStatus.Waiting(12)),
+      new AreaMissionStatus(AreaType.SIKE_MURA, MissionStatus.Waiting(6)),
     };
   }
 
@@ -86,31 +87,12 @@ public class Game {
     }
   }
 
-  String[] getClosedAreas() {
-    return this.closedAreas;
+  AreaMissionStatus[] getAreaMissions() {
+    return this.areaMissions;
   }
 
-  boolean isSoraStationDeliveryFinished() {
-    return this.soraStationDelivery;
-  }
-
-  boolean isSikeMuraDeliveryFinished() {
-    return this.sikeMuraDelivery;
-  }
-
-  boolean isDododoTownDeliveryFinished() {
-    return this.dododoTownDelivery;
-  }
-
-  boolean isShiranuiKensetsuDeliveryFinished() {
-    return this.shiranuiKensetsuDelivery;
-  }
-
-  record AreaMission(String name, MissionStatus status) {
-  }
-
-  AreaMission[] getAreaMissionStatus() {
-    return this.missions;
+  DeliveryMissionStatus[] getDeliveryMissions() {
+    return this.deliveryMissions;
   }
 
   private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);

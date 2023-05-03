@@ -104,8 +104,8 @@ public class ShiranuiKensetsuBuilding extends Area {
   }
 
   @Override
-  String name() {
-    return "不知火建設本社";
+  AreaType type() {
+    return AreaType.SHIRANUI_KENSETSU;
   }
 
   @Override

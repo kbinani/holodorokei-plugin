@@ -76,8 +76,8 @@ public class DododoTown extends Area {
   }
 
   @Override
-  String name() {
-    return "ドドドタウン";
+  AreaType type() {
+    return AreaType.DODODO_TOWN;
   }
 
   @Override

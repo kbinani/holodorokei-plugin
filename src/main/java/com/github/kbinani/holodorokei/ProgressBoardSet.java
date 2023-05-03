@@ -3,6 +3,7 @@ package com.github.kbinani.holodorokei;
 import org.bukkit.scoreboard.DisplaySlot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ProgressBoardSet {
@@ -35,8 +36,13 @@ public class ProgressBoardSet {
 
     // エリア状況
     common.add("[エリア状況]");
-    var closedAreas = game.getClosedAreas();
-    if (closedAreas.length == 0) {
+    var closedAreas = new ArrayList<AreaType>();
+    for (var mission : game.getAreaMissions()) {
+      if (mission.status().equals(MissionStatus.Fail())) {
+        closedAreas.add(mission.type());
+      }
+    }
+    if (closedAreas.size() == 0) {
       common.add("封鎖エリア：なし");
     } else {
       for (var area : closedAreas) {
@@ -47,13 +53,13 @@ public class ProgressBoardSet {
 
     // 納品ミッション
     common.add("[納品ミッション]");
-    if (game.isSoraStationDeliveryFinished() && game.isSikeMuraDeliveryFinished() && game.isShiranuiKensetsuDeliveryFinished() && game.isDododoTownDeliveryFinished()) {
+    var deliveryMissions = game.getDeliveryMissions();
+    if (Arrays.stream(deliveryMissions).allMatch(DeliveryMissionStatus::completed)) {
       common.add("└成功！");
     } else {
-      common.add("└そらステーション：" + (game.isSoraStationDeliveryFinished() ? "o" : "x"));
-      common.add("└しけ村：" + (game.isSikeMuraDeliveryFinished() ? "o" : "x"));
-      common.add("└ドドドタウン：" + (game.isDododoTownDeliveryFinished() ? "o" : "x"));
-      common.add("└不知火建設本社：" + (game.isShiranuiKensetsuDeliveryFinished() ? "o" : "x"));
+      for (var mission : deliveryMissions) {
+        common.add("└" + mission.type().description() + "：" + (mission.completed() ? "o" : "x"));
+      }
     }
     common.add("+" + "-".repeat(14) + "+");
 
@@ -62,7 +68,7 @@ public class ProgressBoardSet {
     var thief = new ArrayList<>(common);
     var cop = new ArrayList<>(common);
     var manager = new ArrayList<>(common);
-    var status = game.getAreaMissionStatus();
+    var status = game.getAreaMissions();
 
     for (int i = 0; i < 20 && i < status.length; i++) {
       // ① ~ ⑳
@@ -70,22 +76,22 @@ public class ProgressBoardSet {
       var mission = status[i];
       var st = mission.status();
       if (st.equals(MissionStatus.Fail()) || st.equals(MissionStatus.Success())) {
-        var line = "└" + prefix + mission.name() + "：" + mission.status().description();
+        var line = "└" + prefix + mission.type().description() + "：" + mission.status().description();
         thief.add(line);
         cop.add(line);
         manager.add(line);
       } else if (st.equals(MissionStatus.InProgress())) {
-        var line = "└" + prefix + mission.name() + "：" + mission.status().rawValue;
+        var line = "└" + prefix + mission.type().description() + "：" + mission.status().description();
         thief.add(line);
-        cop.add("└" + prefix + "？？？：" + mission.status().rawValue);
+        cop.add("└" + prefix + "？？？：" + mission.status().description());
         manager.add(line);
       } else {
-        var line = "└" + prefix + "？？？：" + mission.status().rawValue;
+        var line = "└" + prefix + "？？？：" + mission.status().description();
         thief.add(line);
         cop.add(line);
         //NOTE: 本物は運営はドロボウ・ケイサツと同じのを表示している.
         // けど実際運用する場合は次起こるミッションが見られたほうがいいはず
-        manager.add("└" + prefix + mission.name() + "：" + mission.status().rawValue);
+        manager.add("└" + prefix + mission.type().description() + "：" + mission.status().description());
       }
     }
 

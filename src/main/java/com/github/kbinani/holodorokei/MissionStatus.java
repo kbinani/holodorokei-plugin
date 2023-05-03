@@ -24,7 +24,7 @@ public class MissionStatus {
     this.rawValue = rawValue;
   }
 
-  final int rawValue;
+  private final int rawValue;
 
   @Override
   public boolean equals(Object obj) {

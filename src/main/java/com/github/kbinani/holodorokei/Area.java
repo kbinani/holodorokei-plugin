@@ -28,13 +28,13 @@ public abstract class Area {
   boolean missionStarted = false;
   boolean missionCompleted = false;
 
-  abstract String name();
-
   abstract ChestPosition[] chestPositionList();
 
   abstract Point3i[] beaconPositionList();
 
   abstract Mission initializeMission(World world);
+
+  abstract AreaType type();
 
   Area(World world) {
     this.world = world;
@@ -59,9 +59,6 @@ public abstract class Area {
     mission = initializeMission(world);
     if (mission != null) {
       mission.cleanup(world);
-      //TODO:debug
-      mission.start(world);
-      missionStarted = true;
     }
   }
 
@@ -80,6 +77,14 @@ public abstract class Area {
       BlockData blockData = Material.AIR.createBlockData();
       world.setBlockData(p.x, p.y, p.z, blockData);
     }
+  }
+
+  void startMission() {
+    if (missionStarted || missionCompleted) {
+      return;
+    }
+    mission.start(world);
+    missionStarted = true;
   }
 
   boolean onPlayerInteract(PlayerInteractEvent e) {
