@@ -115,43 +115,32 @@ public class Main extends JavaPlugin implements Listener {
     } else if (location.equals(kButtonStartShortSoraStation)) {
       if (game == null) {
         var s = this.setting;
-        //TODO:
+        s.scheduleShortAreaMission(AreaType.SORA_STATION);
         scheduleNewGame(s);
       }
     } else if (location.equals(kButtonStartShortSikeVillage)) {
       if (game == null) {
         var s = this.setting;
-        //TODO:
+        s.scheduleShortAreaMission(AreaType.SIKE_MURA);
         scheduleNewGame(s);
       }
     } else if (location.equals(kButtonStartShortDododoTown)) {
       if (game == null) {
         var s = this.setting;
-        //TODO:
+        s.scheduleShortAreaMission(AreaType.DODODO_TOWN);
         scheduleNewGame(s);
       }
     } else if (location.equals(kButtonStartShortShiranuiConstructionBuilding)) {
       if (game == null) {
         var s = this.setting;
-        //TODO:
+        s.scheduleShortAreaMission(AreaType.SHIRANUI_KENSETSU);
         scheduleNewGame(s);
       }
-    } else if (location.equals(kButtonStartNormal1)) {
+    } else if (location.equals(kButtonStartNormal1) || location.equals(kButtonStartNormal2) || location.equals(kButtonStartNormal3)) {
       if (game == null) {
+        //TODO: 通常, 通常②, 通常③の違いは?
         var s = this.setting;
-        //TODO:
-        scheduleNewGame(s);
-      }
-    } else if (location.equals(kButtonStartNormal2)) {
-      if (game == null) {
-        var s = this.setting;
-        //TODO:
-        scheduleNewGame(s);
-      }
-    } else if (location.equals(kButtonStartNormal3)) {
-      if (game == null) {
-        var s = this.setting;
-        //TODO:
+        s.scheduleRegularAreaMissionRandomly();
         scheduleNewGame(s);
       }
     } else if (location.equals(kButtonReset)) {

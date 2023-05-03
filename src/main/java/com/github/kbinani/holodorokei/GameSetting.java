@@ -6,8 +6,7 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class GameSetting {
   final @Nonnull Set<Player> thieves = new HashSet<>();
@@ -18,6 +17,7 @@ public class GameSetting {
   @Nullable
   Player cleaner;
   final Set<Player> managers = new HashSet<>();
+  final Map<AreaType, Integer> areaMissionSchedule = new HashMap<>();
 
   void reset() {
     var thief = Teams.Instance().thief;
@@ -161,5 +161,19 @@ public class GameSetting {
 
   int getNumThieves() {
     return thieves.size();
+  }
+
+  void scheduleShortAreaMission(AreaType type) {
+    areaMissionSchedule.clear();
+    areaMissionSchedule.put(type, 4);
+  }
+
+  void scheduleRegularAreaMissionRandomly() {
+    areaMissionSchedule.clear();
+    var types = new ArrayList<>(Arrays.stream(AreaType.values()).toList());
+    Collections.shuffle(types);
+    for (int i = 0; i < 3; i++) {
+      areaMissionSchedule.put(types.get(i), 6 * (3 - i));
+    }
   }
 }

@@ -8,6 +8,8 @@ import org.bukkit.block.Container;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 
+import java.util.ArrayList;
+
 public class Game {
   final GameSetting setting;
   final World world;
@@ -35,12 +37,21 @@ public class Game {
     this.dododoTown = new DododoTown(world);
     this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
     this.board = new ProgressBoardSet();
-    //TODO: どのミッションを発生させるか抽選する
-    this.areaMissions = new AreaMissionStatus[]{
-      new AreaMissionStatus(AreaType.SORA_STATION, MissionStatus.Waiting(18)),
-      new AreaMissionStatus(AreaType.SHIRANUI_KENSETSU, MissionStatus.Waiting(12)),
-      new AreaMissionStatus(AreaType.SIKE_MURA, MissionStatus.Waiting(6)),
-    };
+
+    record Entry(AreaType type, int minutes) {
+      AreaMissionStatus toStatus() {
+        return new AreaMissionStatus(type, MissionStatus.Waiting(Entry.this.minutes));
+      }
+    }
+
+    var areaMissions = new ArrayList<Entry>();
+    for (var sched : setting.areaMissionSchedule.entrySet()) {
+      var area = sched.getKey();
+      var minutes = sched.getValue();
+      areaMissions.add(new Entry(area, minutes));
+    }
+    areaMissions.sort((a, b) -> b.minutes - a.minutes);
+    this.areaMissions = areaMissions.stream().map(Entry::toStatus).toList().toArray(new AreaMissionStatus[]{});
   }
 
   void start() {
