@@ -12,7 +12,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
-import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -42,8 +41,12 @@ public class Game {
   private @Nullable Bar mainBossBar;
   private @Nullable BukkitTask bossBarsUpdateTimer;
   private long startMillis;
-  private final Set<Player> thieves = new HashSet<>();
-  private final Set<Player> prisoners = new HashSet<>();
+  private final Set<PlayerTracking> thieves = new HashSet<>();
+  private final Set<PlayerTracking> prisoners = new HashSet<>();
+  private final @Nullable PlayerTracking femaleExecutive;
+  private final @Nullable PlayerTracking researcher;
+  private final @Nullable PlayerTracking cleaner;
+  private final PlayerTracking[] cops;
   private long lastResurrection;
   private @Nullable BukkitTask resurrectionCoolDownTimer;
   private @Nonnull
@@ -83,6 +86,24 @@ public class Game {
     }
     areaMissions.sort((a, b) -> b.minutes - a.minutes);
     this.areaMissions = areaMissions.stream().map(Entry::toStatus).toList().toArray(new AreaMissionStatus[]{});
+
+    for (var p : setting.thieves) {
+      thieves.add(new PlayerTracking(p, Role.THIEF));
+    }
+    femaleExecutive = setting.femaleExecutive == null ? null : new PlayerTracking(setting.femaleExecutive, Role.FEMALE_EXECUTIVE);
+    researcher = setting.researcher == null ? null : new PlayerTracking(setting.researcher, Role.RESEARCHER);
+    cleaner = setting.cleaner == null ? null : new PlayerTracking(setting.cleaner, Role.CLEANER);
+    var cops = new ArrayList<PlayerTracking>();
+    if (femaleExecutive != null) {
+      cops.add(femaleExecutive);
+    }
+    if (researcher != null) {
+      cops.add(researcher);
+    }
+    if (cleaner != null) {
+      cops.add(cleaner);
+    }
+    this.cops = cops.toArray(new PlayerTracking[]{});
   }
 
   void start() {
@@ -113,8 +134,6 @@ public class Game {
       }
     }
 
-    thieves.addAll(setting.thieves);
-
     startMillis = System.currentTimeMillis();
     gameTimeoutTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), this::timeoutGame, 20 * 60 * duration);
 
@@ -127,19 +146,11 @@ public class Game {
     bossBarsUpdateTimer = scheduler.runTaskTimer(delegate.mainDelegateGetOwner(), this::updateBossBars, 20, 20);
 
     thieves.forEach(this::giveThieveItems);
-    if (setting.femaleExecutive != null) {
-      giveCopItems(setting.femaleExecutive);
-    }
-    if (setting.researcher != null) {
-      giveCopItems(setting.researcher);
-    }
-    if (setting.cleaner != null) {
-      giveCopItems(setting.cleaner);
-    }
+    Arrays.stream(cops).forEach(this::giveCopItems);
   }
 
-  private void giveThieveItems(Player player) {
-    var inventory = player.getInventory();
+  private void giveThieveItems(PlayerTracking tracking) {
+    var inventory = tracking.player.getInventory();
     inventory.clear();
 
     var pickaxe = new ItemStack(Material.IRON_PICKAXE);
@@ -171,8 +182,8 @@ public class Game {
     inventory.setItem(2, potion);
   }
 
-  private void giveCopItems(Player player) {
-    var inventory = player.getInventory();
+  private void giveCopItems(PlayerTracking tracking) {
+    var inventory = tracking.player.getInventory();
     inventory.clear();
 
     var stick = new ItemStack(Material.CARROT_ON_A_STICK);
@@ -294,20 +305,14 @@ public class Game {
       missionBossBar.cleanup();
       missionBossBar = null;
     }
-    for (var p : thieves) {
-      p.getInventory().clear();
+    for (var t : thieves) {
+      t.player.getInventory().clear();
     }
-    for (var p : prisoners) {
-      p.getInventory().clear();
+    for (var t : prisoners) {
+      t.player.getInventory().clear();
     }
-    if (setting.femaleExecutive != null) {
-      setting.femaleExecutive.getInventory().clear();
-    }
-    if (setting.researcher != null) {
-      setting.researcher.getInventory().clear();
-    }
-    if (setting.cleaner != null) {
-      setting.cleaner.getInventory().clear();
+    for (var t : cops) {
+      t.player.getInventory().clear();
     }
   }
 
