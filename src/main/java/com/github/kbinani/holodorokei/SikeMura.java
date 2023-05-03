@@ -3,11 +3,13 @@ package com.github.kbinani.holodorokei;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -16,6 +18,9 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTables;
 import org.bukkit.util.BoundingBox;
+
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SikeMura extends Area {
     static class CMission extends Mission {
@@ -118,6 +123,7 @@ public class SikeMura extends Area {
         }
 
         private void summonZombie(int x, int y, int z, World world) {
+            final var id = new AtomicReference<UUID>();
             world.spawnEntity(new Location(world, x + 0.5, y, z + 0.5), EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.COMMAND, it -> {
                 Zombie zombie = (Zombie) it;
                 zombie.setAdult();
@@ -129,8 +135,11 @@ public class SikeMura extends Area {
                 zombie.setLootTable(LootTables.EMPTY.getLootTable());
                 zombie.setPersistent(true);
                 zombie.setCanPickupItems(false);
-                zombie.setHealth(1);
+                id.set(zombie.getUniqueId());
             });
+            var server = Bukkit.getServer();
+            CommandSender sender = server.getConsoleSender();
+            server.dispatchCommand(sender, String.format("data modify entity %s PersistenceRequired set value 1b", id.get().toString()));
         }
 
         private static void DisableDrop(EntityEquipment e) {
