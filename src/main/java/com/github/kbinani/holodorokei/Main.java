@@ -220,7 +220,7 @@ public class Main extends JavaPlugin implements Listener {
 
   private void scheduleNewGame(GameSetting setting) {
     //TODO: setting が実際に開始可能な条件になっているか検証する
-    game = new Game(world, setting);
+    game = new Game(this, world, setting);
     this.setting = new GameSetting();
     var server = getServer();
     server.sendMessage(Component.empty());

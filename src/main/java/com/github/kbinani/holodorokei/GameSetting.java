@@ -18,6 +18,7 @@ public class GameSetting {
   Player cleaner;
   final Set<Player> managers = new HashSet<>();
   final Map<AreaType, Integer> areaMissionSchedule = new HashMap<>();
+  int duration = 20;
 
   void reset() {
     var thief = Teams.Instance().thief;
@@ -166,6 +167,7 @@ public class GameSetting {
   void scheduleShortAreaMission(AreaType type) {
     areaMissionSchedule.clear();
     areaMissionSchedule.put(type, 4);
+    duration = 5;
   }
 
   void scheduleRegularAreaMissionRandomly() {
@@ -175,5 +177,6 @@ public class GameSetting {
     for (int i = 0; i < 3; i++) {
       areaMissionSchedule.put(types.get(i), 6 * (3 - i));
     }
+    duration = 20;
   }
 }
