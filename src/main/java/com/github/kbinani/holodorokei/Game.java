@@ -33,6 +33,7 @@ public class Game {
   private final int duration;
   private final Map<AreaType, BukkitTask> areaMissionStarterTasks = new HashMap<>();
   private @Nullable BukkitTask areaMissionTimeoutTimer;
+  private @Nullable BukkitTask gameTimeoutTimer;
 
   private AreaMissionStatus[] areaMissions = new AreaMissionStatus[]{};
   private final DeliveryMissionStatus[] deliveryMissions = new DeliveryMissionStatus[]{
@@ -96,6 +97,8 @@ public class Game {
         areaMissionStarterTasks.put(type, task);
       }
     }
+
+    gameTimeoutTimer = scheduler.runTaskLater(owner, this::timeoutGame, 20 * 60 * (long) duration);
   }
 
   int getNumCops() {
@@ -117,6 +120,10 @@ public class Game {
     if (areaMissionTimeoutTimer != null) {
       areaMissionTimeoutTimer.cancel();
       areaMissionTimeoutTimer = null;
+    }
+    if (gameTimeoutTimer != null) {
+      gameTimeoutTimer.cancel();
+      gameTimeoutTimer = null;
     }
   }
 
@@ -179,6 +186,7 @@ public class Game {
         areaMissions[i] = new AreaMissionStatus(type, MissionStatus.Success());
         if (areaMissionTimeoutTimer != null) {
           areaMissionTimeoutTimer.cancel();
+          areaMissionTimeoutTimer = null;
         }
         var server = Bukkit.getServer();
         Players.Within(world, new BoundingBox[]{Main.field}, (p) -> {
@@ -201,6 +209,7 @@ public class Game {
         areaMissions[i] = new AreaMissionStatus(type, MissionStatus.Fail());
         if (areaMissionTimeoutTimer != null) {
           areaMissionTimeoutTimer.cancel();
+          areaMissionTimeoutTimer = null;
         }
         var server = Bukkit.getServer();
         Players.Within(world, new BoundingBox[]{Main.field}, (p) -> {
@@ -220,6 +229,20 @@ public class Game {
         return;
       }
     }
+  }
+
+  private void timeoutGame() {
+    var server = Bukkit.getServer();
+    server.sendMessage(Component.text("-".repeat(23)));
+    server.sendMessage(Component.text("[結果発表]"));
+    setting.thieves.forEach(p -> {
+      server.sendMessage(Component.text(String.format("%sが逃げ切った！", p.getName())).color(NamedTextColor.YELLOW));
+    });
+    server.sendMessage(Component.empty());
+    server.sendMessage(Component.text("ドロボウの勝利！"));
+    server.sendMessage(Component.text("-".repeat(23)));
+
+    terminate();
   }
 
   private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);
