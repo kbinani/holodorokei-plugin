@@ -46,7 +46,7 @@ public class Bar {
   }
 
   void progress(float p) {
-    instance.progress(p);
+    instance.progress(Math.min(Math.max(p, 0), 1));
   }
 
   void color(BossBar.Color color) {

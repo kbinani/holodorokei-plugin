@@ -29,12 +29,13 @@ public class Game {
   private final DododoTown dododoTown;
   private final Area[] areas;
   private final ProgressBoardSet board;
-  private final int duration;
+  private final long duration;
   private final Map<AreaType, BukkitTask> areaMissionStarterTasks = new HashMap<>();
   private @Nullable BukkitTask areaMissionTimeoutTimer;
+  private @Nullable Bar missionBossBar;
   private @Nullable BukkitTask gameTimeoutTimer;
   private @Nullable Bar mainBossBar;
-  private @Nullable BukkitTask mainBossBarUpdateTimer;
+  private @Nullable BukkitTask bossBarsUpdateTimer;
   private long startMillis;
   private final Set<Player> thieves = new HashSet<>();
   private final Set<Player> prisoners = new HashSet<>();
@@ -110,7 +111,7 @@ public class Game {
     thieves.addAll(setting.thieves);
 
     startMillis = System.currentTimeMillis();
-    gameTimeoutTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), this::timeoutGame, 20 * 60 * (long) duration);
+    gameTimeoutTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), this::timeoutGame, 20 * 60 * duration);
 
     mainBossBar = new Bar(world, Main.field);
     mainBossBar.progress(1);
@@ -118,18 +119,48 @@ public class Game {
     mainBossBar.name(getMainBossBarComponent());
     mainBossBar.update();
 
-    mainBossBarUpdateTimer = scheduler.runTaskTimer(delegate.mainDelegateGetOwner(), this::updateMainBossBar, 20, 20);
+    bossBarsUpdateTimer = scheduler.runTaskTimer(delegate.mainDelegateGetOwner(), this::updateBossBars, 20, 20);
   }
 
-  private long getRemainingSeconds() {
-    long remaining = Math.min(startMillis + (long) duration * 60 * 1000 - System.currentTimeMillis(), (long) duration * 60 * 1000);
-    return remaining / 1000;
+  private int getRemainingGameSeconds() {
+    long remaining = Math.min(startMillis + duration * 60 * 1000 - System.currentTimeMillis(), duration * 60 * 1000);
+    return (int) (remaining / 1000);
+  }
+
+  record ActiveAreaMission(AreaType type, int remainingSeconds) {
+    Component bossBarComponent() {
+      int minutes = remainingSeconds / 60;
+      int seconds = remainingSeconds - 60 * minutes;
+      return Component.text(String.format("エリアミッション（%s）：残り時間：", type.description()))
+        .append(Component.text(String.format("%d:%02d", minutes, seconds)).color(NamedTextColor.GOLD));
+    }
+  }
+
+  private @Nullable ActiveAreaMission getActiveAreaMission() {
+    AreaType type = null;
+    for (var m : areaMissions) {
+      if (m.status().equals(MissionStatus.InProgress())) {
+        type = m.type();
+        break;
+      }
+    }
+    if (type == null) {
+      return null;
+    }
+    var schedule = setting.areaMissionSchedule.get(type);
+    if (schedule == null) {
+      return null;
+    }
+    long missionStartMillis = startMillis + duration * 60 * 1000 - (long) schedule * 60 * 1000;
+    long missionEndMillis = missionStartMillis + 3 * 60 * 1000;
+    int seconds = (int) Math.max(0, missionEndMillis - System.currentTimeMillis()) / 1000;
+    return new ActiveAreaMission(type, seconds);
   }
 
   private Component getMainBossBarComponent() {
-    long remaining = getRemainingSeconds();
-    long minutes = remaining / 60;
-    long seconds = remaining - minutes * 60;
+    int remaining = getRemainingGameSeconds();
+    int minutes = remaining / 60;
+    int seconds = remaining - minutes * 60;
 
     long resurrectionTimeoutSeconds = Math.max(0, (lastResurrection + 10 * 1000 - System.currentTimeMillis()) / 1000);
 
@@ -169,13 +200,17 @@ public class Game {
       mainBossBar.cleanup();
       mainBossBar = null;
     }
-    if (mainBossBarUpdateTimer != null) {
-      mainBossBarUpdateTimer.cancel();
-      mainBossBarUpdateTimer = null;
+    if (bossBarsUpdateTimer != null) {
+      bossBarsUpdateTimer.cancel();
+      bossBarsUpdateTimer = null;
     }
     if (resurrectionCoolDownTimer != null) {
       resurrectionCoolDownTimer.cancel();
       resurrectionCoolDownTimer = null;
+    }
+    if (missionBossBar != null) {
+      missionBossBar.cleanup();
+      missionBossBar = null;
     }
   }
 
@@ -229,6 +264,18 @@ public class Game {
       }
     }
     board.update(this);
+
+    if (missionBossBar != null) {
+      missionBossBar.cleanup();
+    }
+    missionBossBar = new Bar(world, Main.field);
+    missionBossBar.color(BossBar.Color.YELLOW);
+    missionBossBar.progress(1);
+    var active = getActiveAreaMission();
+    if (active != null) {
+      missionBossBar.name(active.bossBarComponent());
+    }
+    missionBossBar.update();
   }
 
   private void completeAreaMission(AreaType type) {
@@ -249,6 +296,10 @@ public class Game {
         server.sendMessage(Component.text(String.format("[エリアミッション（%s）成功！]", type.description())));
         server.sendMessage(Component.text("-".repeat(23)));
         board.update(this);
+        if (missionBossBar != null) {
+          missionBossBar.cleanup();
+          missionBossBar = null;
+        }
         return;
       }
     }
@@ -277,6 +328,10 @@ public class Game {
         server.sendMessage(Component.text(String.format("【%s】エリアが10秒後に封鎖されます！", type.description())));
         server.sendMessage(Component.text("-".repeat(23)));
         board.update(this);
+        if (missionBossBar != null) {
+          missionBossBar.cleanup();
+          missionBossBar = null;
+        }
         //TODO: エリア封鎖処理
         return;
       }
@@ -299,12 +354,20 @@ public class Game {
     delegate.mainDelegateDidFinishGame();
   }
 
-  private void updateMainBossBar() {
-    if (mainBossBar == null) {
-      return;
+  private void updateBossBars() {
+    if (mainBossBar != null) {
+      mainBossBar.name(getMainBossBarComponent());
+      mainBossBar.progress(getRemainingGameSeconds() / (float) (duration * 60));
+      mainBossBar.update();
     }
-    mainBossBar.name(getMainBossBarComponent());
-    mainBossBar.progress(getRemainingSeconds() / (float) (duration * 60));
+    if (missionBossBar != null) {
+      var active = getActiveAreaMission();
+      if (active != null) {
+        missionBossBar.name(active.bossBarComponent());
+        missionBossBar.progress(active.remainingSeconds / (float) (3 * 60));
+        missionBossBar.update();
+      }
+    }
   }
 
   private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);
