@@ -35,7 +35,10 @@ public class PlayerTracking {
         var type = SkillType.THIEF_FINDER;
         this.skill = new Skill(type, type.coolDownMillis(role), type.effectiveMillis(role));
       }
-      case CLEANER -> this.skill = null;
+      case CLEANER -> {
+        var type = SkillType.INVISIBILITY;
+        this.skill = new Skill(type, type.coolDownMillis(role), type.effectiveMillis(role));
+      }
       case MANAGER -> this.skill = null;
     }
     return this.skill;

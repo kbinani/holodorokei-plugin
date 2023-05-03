@@ -67,7 +67,11 @@ public enum SkillType {
           default -> 0;
         };
       case CLEANER:
-        return 0;
+        if (this == INVISIBILITY) {
+          return 20 * 60 * 1000;
+        } else {
+          return 0;
+        }
       default:
         return 0;
     }
