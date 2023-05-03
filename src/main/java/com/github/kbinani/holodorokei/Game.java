@@ -16,6 +16,14 @@ public class Game {
     final ShiranuiKensetsuBuilding shiranuiKensetsuBuilding;
     final DododoTown dododoTown;
     final Area[] areas;
+    final ProgressBoardSet board;
+
+    private String[] closedAreas = new String[0];
+    private boolean soraStationDelivery = false;
+    private boolean sikeMuraDelivery = false;
+    private boolean dododoTownDelivery = false;
+    private boolean shiranuiKensetsuDelivery = false;
+    private AreaMission[] missions;
 
     Game(World world, GameSetting setting) {
         this.world = world;
@@ -25,6 +33,13 @@ public class Game {
         this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world);
         this.dododoTown = new DododoTown(world);
         this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
+        this.board = new ProgressBoardSet();
+        //TODO: どのミッションを発生させるか抽選する
+        this.missions = new AreaMission[]{
+                new AreaMission(soraStation.name(), MissionStatus.WILL_START_18),
+                new AreaMission(shiranuiKensetsuBuilding.name(), MissionStatus.WILL_START_12),
+                new AreaMission(sikeMura.name(), MissionStatus.WILL_START_6),
+        };
     }
 
     void start() {
@@ -40,6 +55,7 @@ public class Game {
         for (var area : areas) {
             area.initialize();
         }
+        board.update(this);
     }
 
     int getNumCops() {
@@ -55,6 +71,7 @@ public class Game {
         for (var area : areas) {
             area.reset();
         }
+        board.cleanup();
     }
 
     void onPlayerInteract(PlayerInteractEvent e) {
@@ -67,6 +84,33 @@ public class Game {
         for (var area : areas) {
             area.onEntityMove(e);
         }
+    }
+
+    String[] getClosedAreas() {
+        return this.closedAreas;
+    }
+
+    boolean isSoraStationDeliveryFinished() {
+        return this.soraStationDelivery;
+    }
+
+    boolean isSikeMuraDeliveryFinished() {
+        return this.sikeMuraDelivery;
+    }
+
+    boolean isDododoTownDeliveryFinished() {
+        return this.dododoTownDelivery;
+    }
+
+    boolean isShiranuiKensetsuDeliveryFinished() {
+        return this.shiranuiKensetsuDelivery;
+    }
+
+    record AreaMission(String name, MissionStatus status) {
+    }
+
+    AreaMission[] getAreaMissionStatus() {
+        return this.missions;
     }
 
     private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);
