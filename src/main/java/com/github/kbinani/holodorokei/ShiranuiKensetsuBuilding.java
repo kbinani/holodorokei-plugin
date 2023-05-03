@@ -56,7 +56,12 @@ public class ShiranuiKensetsuBuilding extends Area {
         return false;
       }
       var pos = new Point3i(block.getLocation());
-      return pos.equals(kGoalSign);
+      if (pos.equals(kGoalSign)) {
+        e.setCancelled(true);
+        return true;
+      } else {
+        return false;
+      }
     }
 
     @Override

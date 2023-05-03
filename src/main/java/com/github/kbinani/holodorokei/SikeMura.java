@@ -98,6 +98,7 @@ public class SikeMura extends Area {
       if (!pos.equals(kGoalSign)) {
         return false;
       }
+      e.setCancelled(true);
       var boxes = new BoundingBox[]{
         new BoundingBox(16, -46, -101, 55, -26, -92),
         new BoundingBox(20, -46, -94, 34, -44, 90),

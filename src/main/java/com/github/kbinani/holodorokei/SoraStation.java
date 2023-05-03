@@ -147,6 +147,7 @@ public class SoraStation extends Area {
       if (member == null) {
         return false;
       }
+      e.setCancelled(true);
       clickOrder.add(member);
       if (!clicked.contains(member)) {
         World world = e.getPlayer().getWorld();
