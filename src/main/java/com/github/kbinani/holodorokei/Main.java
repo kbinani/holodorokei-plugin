@@ -22,247 +22,247 @@ import java.util.Optional;
 import java.util.logging.Level;
 
 public class Main extends JavaPlugin implements Listener {
-    private World world;
-    private boolean initialized = false;
-    private Game game;
-    private GameSetting setting = new GameSetting();
+  private World world;
+  private boolean initialized = false;
+  private Game game;
+  private GameSetting setting = new GameSetting();
 
-    @Override
-    public void onEnable() {
-        Optional<World> overworld = getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
-        if (overworld.isEmpty()) {
-            getLogger().log(Level.SEVERE, "server should have at least one overworld dimension");
-            setEnabled(false);
-            return;
-        }
-        world = overworld.get();
-
-        PluginManager pluginManager = getServer().getPluginManager();
-        pluginManager.registerEvents(this, this);
+  @Override
+  public void onEnable() {
+    Optional<World> overworld = getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
+    if (overworld.isEmpty()) {
+      getLogger().log(Level.SEVERE, "server should have at least one overworld dimension");
+      setEnabled(false);
+      return;
     }
+    world = overworld.get();
 
-    @EventHandler
-    @SuppressWarnings("unused")
-    public void onCreatureSpawn(CreatureSpawnEvent e) {
-        if (e.isCancelled()) {
-            return;
-        }
-        if (e.getEntity().getWorld() != world) {
-            return;
-        }
-        switch (e.getSpawnReason()) {
-            case NATURAL:
-            case VILLAGE_INVASION:
-            case BUILD_WITHER:
-            case BUILD_IRONGOLEM:
-            case BUILD_SNOWMAN:
-            case SPAWNER:
-                e.setCancelled(true);
-                break;
-        }
+    PluginManager pluginManager = getServer().getPluginManager();
+    pluginManager.registerEvents(this, this);
+  }
+
+  @EventHandler
+  @SuppressWarnings("unused")
+  public void onCreatureSpawn(CreatureSpawnEvent e) {
+    if (e.isCancelled()) {
+      return;
     }
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent e) {
-        if (!initialized) {
-            initialized = true;
-            getServer().getScheduler().runTaskLater(this, this::setup, 20 * 5);
-        }
+    if (e.getEntity().getWorld() != world) {
+      return;
     }
-
-    @EventHandler
-    @SuppressWarnings("unused")
-    public void onPlayerInteract(PlayerInteractEvent e) {
-        Player player = e.getPlayer();
-        if (!player.getWorld().getUID().equals(world.getUID())) {
-            return;
-        }
-        if (game != null) {
-            game.onPlayerInteract(e);
-        }
-        Block block = e.getClickedBlock();
-        if (block == null) {
-            return;
-        }
-        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
-        Point3i location = new Point3i(block.getLocation());
-        if (location.equals(kButtonEntryThief)) {
-            if (game == null) {
-                onClickJoin(player, Role.THIEF);
-            }
-        } else if (location.equals(kButtonEntryCopFemaleExecutive)) {
-            if (game == null) {
-                onClickJoin(player, Role.FEMALE_EXECUTIVE);
-            }
-        } else if (location.equals(kButtonEntryCopResearcher)) {
-            if (game == null) {
-                onClickJoin(player, Role.RESEARCHER);
-            }
-        } else if (location.equals(kButtonEntryCopCleaner)) {
-            if (game == null) {
-                onClickJoin(player, Role.CLEANER);
-            }
-        } else if (location.equals(kButtonEntryManager)) {
-            if (game == null) {
-                onClickJoin(player, Role.MANAGER);
-            }
-        } else if (location.equals(kButtonLeave)) {
-            if (game == null) {
-                onClickLeave(player);
-            }
-        } else if (location.equals(kButtonStartShortSoraStation)) {
-            if (game == null) {
-                var s = this.setting;
-                //TODO:
-                scheduleNewGame(s);
-            }
-        } else if (location.equals(kButtonStartShortSikeVillage)) {
-            if (game == null) {
-                var s = this.setting;
-                //TODO:
-                scheduleNewGame(s);
-            }
-        } else if (location.equals(kButtonStartShortDododoTown)) {
-            if (game == null) {
-                var s = this.setting;
-                //TODO:
-                scheduleNewGame(s);
-            }
-        } else if (location.equals(kButtonStartShortShiranuiConstructionBuilding)) {
-            if (game == null) {
-                var s = this.setting;
-                //TODO:
-                scheduleNewGame(s);
-            }
-        } else if (location.equals(kButtonStartNormal1)) {
-            if (game == null) {
-                var s = this.setting;
-                //TODO:
-                scheduleNewGame(s);
-            }
-        } else if (location.equals(kButtonStartNormal2)) {
-            if (game == null) {
-                var s = this.setting;
-                //TODO:
-                scheduleNewGame(s);
-            }
-        } else if (location.equals(kButtonStartNormal3)) {
-            if (game == null) {
-                var s = this.setting;
-                //TODO:
-                scheduleNewGame(s);
-            }
-        } else if (location.equals(kButtonReset)) {
-            onClickReset();
-        }
+    switch (e.getSpawnReason()) {
+      case NATURAL:
+      case VILLAGE_INVASION:
+      case BUILD_WITHER:
+      case BUILD_IRONGOLEM:
+      case BUILD_SNOWMAN:
+      case SPAWNER:
+        e.setCancelled(true);
+        break;
     }
+  }
 
-    @EventHandler
-    public void onEntityMove(EntityMoveEvent e) {
-        if (game == null) {
-            return;
-        }
-        var entity = e.getEntity();
-        if (!entity.getWorld().getUID().equals(world.getUID())) {
-            return;
-        }
-        game.onEntityMove(e);
+  @EventHandler
+  public void onPlayerJoin(PlayerJoinEvent e) {
+    if (!initialized) {
+      initialized = true;
+      getServer().getScheduler().runTaskLater(this, this::setup, 20 * 5);
     }
+  }
 
-    private void setup() {
-        Editor.WallSign(world, kButtonEntryThief, BlockFace.NORTH, DyeColor.YELLOW, "ドロボウでエントリー", "");
-        Editor.WallSign(world, kButtonEntryCopFemaleExecutive, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（女幹部）");
-        Editor.WallSign(world, kButtonEntryCopResearcher, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（研究者）");
-        Editor.WallSign(world, kButtonEntryCopCleaner, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（掃除屋）");
-
-        Editor.WallSign(world, kButtonStartShortSoraStation, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（そらステーション）");
-        Editor.WallSign(world, kButtonStartShortSikeVillage, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（しけ村）");
-        Editor.WallSign(world, kButtonStartShortDododoTown, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（ドドドタウン）");
-        Editor.WallSign(world, kButtonStartShortShiranuiConstructionBuilding, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（不知火建設本社）");
-
-        Editor.WallSign(world, kButtonStartNormal1, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート");
-        Editor.WallSign(world, kButtonReset, BlockFace.NORTH, DyeColor.WHITE, "リセット");
-        Editor.WallSign(world, kButtonStartNormal2, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "②");
-        Editor.WallSign(world, kButtonStartNormal3, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "③");
-
-        Editor.WallSign(world, kButtonEntryManager, BlockFace.NORTH, DyeColor.GREEN, "運営でエントリー");
-        Editor.WallSign(world, kButtonLeave, BlockFace.NORTH, DyeColor.WHITE, "エントリー解除");
+  @EventHandler
+  @SuppressWarnings("unused")
+  public void onPlayerInteract(PlayerInteractEvent e) {
+    Player player = e.getPlayer();
+    if (!player.getWorld().getUID().equals(world.getUID())) {
+      return;
     }
-
-    private void reset() {
-        setup();
-        if (game != null) {
-            game.terminate();
-            game = null;
-        }
-        if (setting != null) {
-            setting.reset();
-        }
-        setting = new GameSetting();
-        Teams.Reset();
-        getServer().sendMessage(Component.text("全ての進行状況をリセットしました"));
+    if (game != null) {
+      game.onPlayerInteract(e);
     }
-
-    private void onClickJoin(Player player, Role role) {
-        var result = setting.join(player, role);
-        if (result == null) {
-            return;
-        }
-        if (result.error != null) {
-            player.sendMessage(Component.text(result.error).color(NamedTextColor.RED));
-        }
-        if (result.ok != null) {
-            getServer().sendMessage(result.ok);
-        }
+    Block block = e.getClickedBlock();
+    if (block == null) {
+      return;
     }
-
-    private void onClickLeave(Player player) {
-        var name = player.teamDisplayName();
-        if (setting.leave(player)) {
-            getServer().sendMessage(name.append(Component.text("がエントリー解除しました").color(NamedTextColor.WHITE)));
-        }
+    if (e.getAction() != Action.RIGHT_CLICK_BLOCK) {
+      return;
     }
-
-    private void onClickReset() {
-        reset();
+    Point3i location = new Point3i(block.getLocation());
+    if (location.equals(kButtonEntryThief)) {
+      if (game == null) {
+        onClickJoin(player, Role.THIEF);
+      }
+    } else if (location.equals(kButtonEntryCopFemaleExecutive)) {
+      if (game == null) {
+        onClickJoin(player, Role.FEMALE_EXECUTIVE);
+      }
+    } else if (location.equals(kButtonEntryCopResearcher)) {
+      if (game == null) {
+        onClickJoin(player, Role.RESEARCHER);
+      }
+    } else if (location.equals(kButtonEntryCopCleaner)) {
+      if (game == null) {
+        onClickJoin(player, Role.CLEANER);
+      }
+    } else if (location.equals(kButtonEntryManager)) {
+      if (game == null) {
+        onClickJoin(player, Role.MANAGER);
+      }
+    } else if (location.equals(kButtonLeave)) {
+      if (game == null) {
+        onClickLeave(player);
+      }
+    } else if (location.equals(kButtonStartShortSoraStation)) {
+      if (game == null) {
+        var s = this.setting;
+        //TODO:
+        scheduleNewGame(s);
+      }
+    } else if (location.equals(kButtonStartShortSikeVillage)) {
+      if (game == null) {
+        var s = this.setting;
+        //TODO:
+        scheduleNewGame(s);
+      }
+    } else if (location.equals(kButtonStartShortDododoTown)) {
+      if (game == null) {
+        var s = this.setting;
+        //TODO:
+        scheduleNewGame(s);
+      }
+    } else if (location.equals(kButtonStartShortShiranuiConstructionBuilding)) {
+      if (game == null) {
+        var s = this.setting;
+        //TODO:
+        scheduleNewGame(s);
+      }
+    } else if (location.equals(kButtonStartNormal1)) {
+      if (game == null) {
+        var s = this.setting;
+        //TODO:
+        scheduleNewGame(s);
+      }
+    } else if (location.equals(kButtonStartNormal2)) {
+      if (game == null) {
+        var s = this.setting;
+        //TODO:
+        scheduleNewGame(s);
+      }
+    } else if (location.equals(kButtonStartNormal3)) {
+      if (game == null) {
+        var s = this.setting;
+        //TODO:
+        scheduleNewGame(s);
+      }
+    } else if (location.equals(kButtonReset)) {
+      onClickReset();
     }
+  }
 
-    private void scheduleNewGame(GameSetting setting) {
-        //TODO: setting が実際に開始可能な条件になっているか検証する
-        game = new Game(world, setting);
-        this.setting = new GameSetting();
-        var server = getServer();
-        server.sendMessage(Component.empty());
-        server.sendMessage(Component.text(String.format("ゲームを開始します！（ドロボウ：%d人、ケイサツ：%d人）", game.getNumThieves(), game.getNumCops())));
-        server.sendMessage(Component.empty());
-        Countdown.Then(world, new BoundingBox[]{field}, this, (count) -> this.game != null, () -> {
-            if (this.game == null) {
-                return false;
-            }
-            this.game.start();
-            return true;
-        }, 20);
+  @EventHandler
+  public void onEntityMove(EntityMoveEvent e) {
+    if (game == null) {
+      return;
     }
+    var entity = e.getEntity();
+    if (!entity.getWorld().getUID().equals(world.getUID())) {
+      return;
+    }
+    game.onEntityMove(e);
+  }
 
-    private final Point3i kButtonEntryThief = new Point3i(-15, -62, -14);
-    private final Point3i kButtonEntryCopFemaleExecutive = new Point3i(-16, -62, -14);
-    private final Point3i kButtonEntryCopResearcher = new Point3i(-17, -62, -14);
-    private final Point3i kButtonEntryCopCleaner = new Point3i(-18, -62, -14);
+  private void setup() {
+    Editor.WallSign(world, kButtonEntryThief, BlockFace.NORTH, DyeColor.YELLOW, "ドロボウでエントリー", "");
+    Editor.WallSign(world, kButtonEntryCopFemaleExecutive, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（女幹部）");
+    Editor.WallSign(world, kButtonEntryCopResearcher, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（研究者）");
+    Editor.WallSign(world, kButtonEntryCopCleaner, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（掃除屋）");
 
-    private final Point3i kButtonStartShortSoraStation = new Point3i(7, -61, -14);
-    private final Point3i kButtonStartShortSikeVillage = new Point3i(6, -61, -14);
-    private final Point3i kButtonStartShortDododoTown = new Point3i(5, -61, -14);
-    private final Point3i kButtonStartShortShiranuiConstructionBuilding = new Point3i(4, -61, -14);
+    Editor.WallSign(world, kButtonStartShortSoraStation, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（そらステーション）");
+    Editor.WallSign(world, kButtonStartShortSikeVillage, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（しけ村）");
+    Editor.WallSign(world, kButtonStartShortDododoTown, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（ドドドタウン）");
+    Editor.WallSign(world, kButtonStartShortShiranuiConstructionBuilding, BlockFace.NORTH, DyeColor.YELLOW, "ショート版スタート", "（不知火建設本社）");
 
-    private final Point3i kButtonStartNormal1 = new Point3i(7, -62, -14);
-    private final Point3i kButtonReset = new Point3i(6, -62, -14);
-    private final Point3i kButtonStartNormal2 = new Point3i(5, -62, -14);
-    private final Point3i kButtonStartNormal3 = new Point3i(4, -62, -14);
+    Editor.WallSign(world, kButtonStartNormal1, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート");
+    Editor.WallSign(world, kButtonReset, BlockFace.NORTH, DyeColor.WHITE, "リセット");
+    Editor.WallSign(world, kButtonStartNormal2, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "②");
+    Editor.WallSign(world, kButtonStartNormal3, BlockFace.NORTH, DyeColor.CYAN, "通常版スタート", "③");
 
-    private final Point3i kButtonEntryManager = new Point3i(6, -63, -14);
-    private final Point3i kButtonLeave = new Point3i(5, -63, -14);
+    Editor.WallSign(world, kButtonEntryManager, BlockFace.NORTH, DyeColor.GREEN, "運営でエントリー");
+    Editor.WallSign(world, kButtonLeave, BlockFace.NORTH, DyeColor.WHITE, "エントリー解除");
+  }
 
-    public static final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
+  private void reset() {
+    setup();
+    if (game != null) {
+      game.terminate();
+      game = null;
+    }
+    if (setting != null) {
+      setting.reset();
+    }
+    setting = new GameSetting();
+    Teams.Reset();
+    getServer().sendMessage(Component.text("全ての進行状況をリセットしました"));
+  }
+
+  private void onClickJoin(Player player, Role role) {
+    var result = setting.join(player, role);
+    if (result == null) {
+      return;
+    }
+    if (result.error != null) {
+      player.sendMessage(Component.text(result.error).color(NamedTextColor.RED));
+    }
+    if (result.ok != null) {
+      getServer().sendMessage(result.ok);
+    }
+  }
+
+  private void onClickLeave(Player player) {
+    var name = player.teamDisplayName();
+    if (setting.leave(player)) {
+      getServer().sendMessage(name.append(Component.text("がエントリー解除しました").color(NamedTextColor.WHITE)));
+    }
+  }
+
+  private void onClickReset() {
+    reset();
+  }
+
+  private void scheduleNewGame(GameSetting setting) {
+    //TODO: setting が実際に開始可能な条件になっているか検証する
+    game = new Game(world, setting);
+    this.setting = new GameSetting();
+    var server = getServer();
+    server.sendMessage(Component.empty());
+    server.sendMessage(Component.text(String.format("ゲームを開始します！（ドロボウ：%d人、ケイサツ：%d人）", game.getNumThieves(), game.getNumCops())));
+    server.sendMessage(Component.empty());
+    Countdown.Then(world, new BoundingBox[]{field}, this, (count) -> this.game != null, () -> {
+      if (this.game == null) {
+        return false;
+      }
+      this.game.start();
+      return true;
+    }, 20);
+  }
+
+  private final Point3i kButtonEntryThief = new Point3i(-15, -62, -14);
+  private final Point3i kButtonEntryCopFemaleExecutive = new Point3i(-16, -62, -14);
+  private final Point3i kButtonEntryCopResearcher = new Point3i(-17, -62, -14);
+  private final Point3i kButtonEntryCopCleaner = new Point3i(-18, -62, -14);
+
+  private final Point3i kButtonStartShortSoraStation = new Point3i(7, -61, -14);
+  private final Point3i kButtonStartShortSikeVillage = new Point3i(6, -61, -14);
+  private final Point3i kButtonStartShortDododoTown = new Point3i(5, -61, -14);
+  private final Point3i kButtonStartShortShiranuiConstructionBuilding = new Point3i(4, -61, -14);
+
+  private final Point3i kButtonStartNormal1 = new Point3i(7, -62, -14);
+  private final Point3i kButtonReset = new Point3i(6, -62, -14);
+  private final Point3i kButtonStartNormal2 = new Point3i(5, -62, -14);
+  private final Point3i kButtonStartNormal3 = new Point3i(4, -62, -14);
+
+  private final Point3i kButtonEntryManager = new Point3i(6, -63, -14);
+  private final Point3i kButtonLeave = new Point3i(5, -63, -14);
+
+  public static final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
 }

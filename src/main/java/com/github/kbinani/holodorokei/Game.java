@@ -9,110 +9,110 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 
 public class Game {
-    final GameSetting setting;
-    final World world;
-    final SoraStation soraStation;
-    final SikeMura sikeMura;
-    final ShiranuiKensetsuBuilding shiranuiKensetsuBuilding;
-    final DododoTown dododoTown;
-    final Area[] areas;
-    final ProgressBoardSet board;
+  final GameSetting setting;
+  final World world;
+  final SoraStation soraStation;
+  final SikeMura sikeMura;
+  final ShiranuiKensetsuBuilding shiranuiKensetsuBuilding;
+  final DododoTown dododoTown;
+  final Area[] areas;
+  final ProgressBoardSet board;
 
-    private String[] closedAreas = new String[0];
-    private boolean soraStationDelivery = false;
-    private boolean sikeMuraDelivery = false;
-    private boolean dododoTownDelivery = false;
-    private boolean shiranuiKensetsuDelivery = false;
-    private AreaMission[] missions;
+  private String[] closedAreas = new String[0];
+  private boolean soraStationDelivery = false;
+  private boolean sikeMuraDelivery = false;
+  private boolean dododoTownDelivery = false;
+  private boolean shiranuiKensetsuDelivery = false;
+  private AreaMission[] missions;
 
-    Game(World world, GameSetting setting) {
-        this.world = world;
-        this.setting = setting;
-        this.soraStation = new SoraStation(world);
-        this.sikeMura = new SikeMura(world);
-        this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world);
-        this.dododoTown = new DododoTown(world);
-        this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
-        this.board = new ProgressBoardSet();
-        //TODO: どのミッションを発生させるか抽選する
-        this.missions = new AreaMission[]{
-                new AreaMission(soraStation.name(), MissionStatus.Waiting(18)),
-                new AreaMission(shiranuiKensetsuBuilding.name(), MissionStatus.Waiting(12)),
-                new AreaMission(sikeMura.name(), MissionStatus.Waiting(6)),
-        };
+  Game(World world, GameSetting setting) {
+    this.world = world;
+    this.setting = setting;
+    this.soraStation = new SoraStation(world);
+    this.sikeMura = new SikeMura(world);
+    this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world);
+    this.dododoTown = new DododoTown(world);
+    this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
+    this.board = new ProgressBoardSet();
+    //TODO: どのミッションを発生させるか抽選する
+    this.missions = new AreaMission[]{
+      new AreaMission(soraStation.name(), MissionStatus.Waiting(18)),
+      new AreaMission(shiranuiKensetsuBuilding.name(), MissionStatus.Waiting(12)),
+      new AreaMission(sikeMura.name(), MissionStatus.Waiting(6)),
+    };
+  }
+
+  void start() {
+    for (var pos : new Point3i[]{kContainerChestDeliveryPost, kContainerHopperDeliveryPost}) {
+      Block block = world.getBlockAt(pos.x, pos.y, pos.z);
+      BlockState state = block.getState();
+      if (!(state instanceof Container container)) {
+        continue;
+      }
+      Inventory inventory = container.getInventory();
+      inventory.clear();
     }
-
-    void start() {
-        for (var pos : new Point3i[]{kContainerChestDeliveryPost, kContainerHopperDeliveryPost}) {
-            Block block = world.getBlockAt(pos.x, pos.y, pos.z);
-            BlockState state = block.getState();
-            if (!(state instanceof Container container)) {
-                continue;
-            }
-            Inventory inventory = container.getInventory();
-            inventory.clear();
-        }
-        for (var area : areas) {
-            area.initialize();
-        }
-        board.update(this);
+    for (var area : areas) {
+      area.initialize();
     }
+    board.update(this);
+  }
 
-    int getNumCops() {
-        return this.setting.getNumCops();
+  int getNumCops() {
+    return this.setting.getNumCops();
+  }
+
+  int getNumThieves() {
+    return this.setting.getNumThieves();
+  }
+
+  void terminate() {
+    setting.reset();
+    for (var area : areas) {
+      area.reset();
     }
+    board.cleanup();
+  }
 
-    int getNumThieves() {
-        return this.setting.getNumThieves();
+  void onPlayerInteract(PlayerInteractEvent e) {
+    for (var area : areas) {
+      area.onPlayerInteract(e);
     }
+  }
 
-    void terminate() {
-        setting.reset();
-        for (var area : areas) {
-            area.reset();
-        }
-        board.cleanup();
+  void onEntityMove(EntityMoveEvent e) {
+    for (var area : areas) {
+      area.onEntityMove(e);
     }
+  }
 
-    void onPlayerInteract(PlayerInteractEvent e) {
-        for (var area : areas) {
-            area.onPlayerInteract(e);
-        }
-    }
+  String[] getClosedAreas() {
+    return this.closedAreas;
+  }
 
-    void onEntityMove(EntityMoveEvent e) {
-        for (var area : areas) {
-            area.onEntityMove(e);
-        }
-    }
+  boolean isSoraStationDeliveryFinished() {
+    return this.soraStationDelivery;
+  }
 
-    String[] getClosedAreas() {
-        return this.closedAreas;
-    }
+  boolean isSikeMuraDeliveryFinished() {
+    return this.sikeMuraDelivery;
+  }
 
-    boolean isSoraStationDeliveryFinished() {
-        return this.soraStationDelivery;
-    }
+  boolean isDododoTownDeliveryFinished() {
+    return this.dododoTownDelivery;
+  }
 
-    boolean isSikeMuraDeliveryFinished() {
-        return this.sikeMuraDelivery;
-    }
+  boolean isShiranuiKensetsuDeliveryFinished() {
+    return this.shiranuiKensetsuDelivery;
+  }
 
-    boolean isDododoTownDeliveryFinished() {
-        return this.dododoTownDelivery;
-    }
+  record AreaMission(String name, MissionStatus status) {
+  }
 
-    boolean isShiranuiKensetsuDeliveryFinished() {
-        return this.shiranuiKensetsuDelivery;
-    }
+  AreaMission[] getAreaMissionStatus() {
+    return this.missions;
+  }
 
-    record AreaMission(String name, MissionStatus status) {
-    }
-
-    AreaMission[] getAreaMissionStatus() {
-        return this.missions;
-    }
-
-    private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);
-    private final Point3i kContainerHopperDeliveryPost = new Point3i(-5, -61, -25);
+  private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);
+  private final Point3i kContainerHopperDeliveryPost = new Point3i(-5, -61, -25);
 }

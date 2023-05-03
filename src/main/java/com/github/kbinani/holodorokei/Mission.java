@@ -5,8 +5,11 @@ import org.bukkit.World;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 abstract class Mission {
-    abstract boolean onPlayerInteract(PlayerInteractEvent e);
-    abstract boolean onEntityMove(EntityMoveEvent e);
-    abstract void start(World world);
-    abstract void cleanup(World world);
+  abstract boolean onPlayerInteract(PlayerInteractEvent e);
+
+  abstract boolean onEntityMove(EntityMoveEvent e);
+
+  abstract void start(World world);
+
+  abstract void cleanup(World world);
 }
