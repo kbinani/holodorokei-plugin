@@ -66,19 +66,19 @@ public class GameSetting {
     if (femaleExecutive == player) {
       return JoinResult.Error("既にケイサツ（女幹部）として参加済みです");
     }
-    if (femaleExecutive != null) {
-      return JoinResult.Error(femaleExecutive.getName() + "が既にケイサツ（女幹部）として参加済みです");
-    }
     if (researcher == player) {
       return JoinResult.Error("既にケイサツ（研究者）として参加済みです");
-    }
-    if (researcher != null) {
-      return JoinResult.Error(researcher.getName() + "が既にケイサツ（研究者）として参加済みです");
     }
     if (cleaner == player) {
       return JoinResult.Error("既にケイサツ（掃除屋）として参加済みです");
     }
-    if (cleaner != null) {
+    if (role == Role.FEMALE_EXECUTIVE && femaleExecutive != null) {
+      return JoinResult.Error(femaleExecutive.getName() + "が既にケイサツ（女幹部）として参加済みです");
+    }
+    if (role == Role.RESEARCHER && researcher != null) {
+      return JoinResult.Error(researcher.getName() + "が既にケイサツ（研究者）として参加済みです");
+    }
+    if (role == Role.CLEANER && cleaner != null) {
       return JoinResult.Error(cleaner.getName() + "が既にケイサツ（掃除屋）として参加済みです");
     }
     if (thieves.contains(player)) {
