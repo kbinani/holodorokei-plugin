@@ -12,11 +12,16 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
+import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
@@ -88,11 +93,11 @@ public class Game {
     this.areaMissions = areaMissions.stream().map(Entry::toStatus).toList().toArray(new AreaMissionStatus[]{});
 
     for (var p : setting.thieves) {
-      thieves.add(new PlayerTracking(p, Role.THIEF));
+      thieves.add(new PlayerTracking(p, Role.THIEF, delegate));
     }
-    femaleExecutive = setting.femaleExecutive == null ? null : new PlayerTracking(setting.femaleExecutive, Role.FEMALE_EXECUTIVE);
-    researcher = setting.researcher == null ? null : new PlayerTracking(setting.researcher, Role.RESEARCHER);
-    cleaner = setting.cleaner == null ? null : new PlayerTracking(setting.cleaner, Role.CLEANER);
+    femaleExecutive = setting.femaleExecutive == null ? null : new PlayerTracking(setting.femaleExecutive, Role.FEMALE_EXECUTIVE, delegate);
+    researcher = setting.researcher == null ? null : new PlayerTracking(setting.researcher, Role.RESEARCHER, delegate);
+    cleaner = setting.cleaner == null ? null : new PlayerTracking(setting.cleaner, Role.CLEANER, delegate);
     var cops = new ArrayList<PlayerTracking>();
     if (femaleExecutive != null) {
       cops.add(femaleExecutive);
@@ -147,6 +152,8 @@ public class Game {
 
     thieves.forEach(this::giveThieveItems);
     Arrays.stream(cops).forEach(this::giveCopItems);
+
+    Arrays.stream(cops).forEach(PlayerTracking::selectSkill);
   }
 
   private void giveThieveItems(PlayerTracking tracking) {
@@ -322,6 +329,65 @@ public class Game {
         completeAreaMission(area.type());
       }
     }
+    if (e.getHand() == EquipmentSlot.HAND && (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) {
+      var item = e.getItem();
+      if (item != null && item.getType() == Material.CARROT_ON_A_STICK) {
+        var player = e.getPlayer();
+        var tracking = findPlayer(player, false);
+        if (tracking != null) {
+          var result = tracking.tryActivatingSkill();
+          if (result != null) {
+            applyPotionEffect(result.target(), result.effect());
+          }
+        }
+      }
+    }
+  }
+
+  void onPlayerToggleSneak(PlayerToggleSneakEvent e) {
+    var player = findPlayer(e.getPlayer(), false);
+    if (player == null) {
+      return;
+    }
+    if (player.role != Role.CLEANER) {
+      return;
+    }
+    if (e.isSneaking()) {
+      player.activateSkill();
+    } else {
+      player.deactivateSkill();
+    }
+  }
+
+  private void applyPotionEffect(EffectTarget target, PotionEffect effect) {
+    if (target == EffectTarget.THIEF) {
+      thieves.forEach(t -> t.player.addPotionEffect(effect));
+    } else if (target == EffectTarget.COP) {
+      Arrays.stream(cops).forEach(t -> t.player.addPotionEffect(effect));
+    }
+  }
+
+  private @Nullable PlayerTracking findPlayer(Player player, boolean includePrisoner) {
+    if (femaleExecutive != null && femaleExecutive.player.equals(player)) {
+      return femaleExecutive;
+    }
+    if (researcher != null && researcher.player.equals(player)) {
+      return researcher;
+    }
+    if (cleaner != null && cleaner.player.equals(player)) {
+      return cleaner;
+    }
+    var thief = thieves.stream().filter(p -> p.player.equals(player)).findFirst();
+    if (thief.isPresent()) {
+      return thief.get();
+    }
+    if (includePrisoner) {
+      var prisoner = prisoners.stream().filter(p -> p.player.equals(player)).findFirst();
+      if (prisoner.isPresent()) {
+        return prisoner.get();
+      }
+    }
+    return null;
   }
 
   void onEntityMove(EntityMoveEvent e) {
@@ -357,6 +423,7 @@ public class Game {
     });
     server.sendMessage(Component.empty());
     server.sendMessage(Component.text("-".repeat(23)));
+    //TODO: ケイサツには "？？？" と表示する
     server.sendMessage(Component.text(String.format("[エリアミッション（%s）スタート！]", type.description())));
     server.sendMessage(Component.text("-".repeat(23)));
     for (var area : areas) {

@@ -15,6 +15,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
@@ -170,6 +171,14 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
       return;
     }
     e.setCancelled(true);
+  }
+
+  @EventHandler
+  public void onPlayerToggleSneak(PlayerToggleSneakEvent e) {
+    if (game == null) {
+      return;
+    }
+    game.onPlayerToggleSneak(e);
   }
 
   private void setup() {
