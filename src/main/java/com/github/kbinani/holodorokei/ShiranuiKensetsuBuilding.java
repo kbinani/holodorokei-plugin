@@ -136,7 +136,6 @@ public class ShiranuiKensetsuBuilding extends Area {
       new Point3i(53, -58, 53),
       new Point3i(64, -58, 53),
       new Point3i(63, -58, 53),
-      new Point3i(43, -58, 45),
       new Point3i(64, -58, 39),
       new Point3i(28, -59, 39),
       new Point3i(30, -50, 56),
