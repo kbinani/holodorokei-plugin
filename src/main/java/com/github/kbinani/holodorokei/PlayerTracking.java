@@ -262,6 +262,14 @@ public class PlayerTracking {
       actionBarUpdateTimer.cancel();
       actionBarUpdateTimer = null;
     }
+    if (invulnerableTimeoutTimer != null) {
+      invulnerableTimeoutTimer.cancel();
+      invulnerableTimeoutTimer = null;
+    }
+    if (coolDownTimer != null) {
+      coolDownTimer.cancel();
+      coolDownTimer = null;
+    }
     removeDefaultPotionEffect();
   }
 
