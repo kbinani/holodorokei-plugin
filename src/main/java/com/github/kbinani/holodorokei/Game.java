@@ -54,8 +54,9 @@ public class Game {
   private final @Nullable PlayerTracking researcher;
   private final @Nullable PlayerTracking cleaner;
   private final PlayerTracking[] cops;
-  private long lastResurrection;
+  private long resurrectionCoolDownMillis;
   private @Nullable BukkitTask resurrectionCoolDownTimer;
+  private @Nullable BukkitTask resurrectionMainBarUpdateTimer;
   private @Nonnull
   final MainDelegate delegate;
 
@@ -269,7 +270,7 @@ public class Game {
     int minutes = remaining / 60;
     int seconds = remaining - minutes * 60;
 
-    long resurrectionTimeoutSeconds = Math.max(0, (lastResurrection + 10 * 1000 - System.currentTimeMillis()) / 1000);
+    long resurrectionTimeoutSeconds = Math.max(0, (resurrectionCoolDownMillis - System.currentTimeMillis()) / 1000);
 
     return Component.text("残り時間：")
       .append(Component.text(String.format("%d:%02d", minutes, seconds)).color(NamedTextColor.GREEN))
@@ -469,6 +470,9 @@ public class Game {
   }
 
   private void prisonerHitByThief(PlayerTracking prisoner, PlayerTracking thief, EntityDamageByEntityEvent e) {
+    if (System.currentTimeMillis() < resurrectionCoolDownMillis) {
+      return;
+    }
     e.setCancelled(true);
 
     var server = Bukkit.getServer();
@@ -483,9 +487,26 @@ public class Game {
     Teams.Instance().prisoner.removePlayer(prisoner.player);
     Teams.Instance().thief.addPlayer(prisoner.player);
 
-    board.update(this);
+    var scheduler = server.getScheduler();
+    resurrectionCoolDownMillis = System.currentTimeMillis() + (long) setting.resurrectCoolDownSeconds * 1000;
+    if (resurrectionCoolDownTimer != null) {
+      resurrectionCoolDownTimer.cancel();
+    }
+    resurrectionCoolDownTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), this::onCoolDownResurrection, (long) setting.resurrectCoolDownSeconds * 20);
+    if (resurrectionMainBarUpdateTimer != null) {
+      resurrectionMainBarUpdateTimer.cancel();
+    }
+    resurrectionMainBarUpdateTimer = scheduler.runTaskTimer(delegate.mainDelegateGetOwner(), this::updateBossBars, 0, 20);
 
-    //TODO: 復活クールタイム
+    board.update(this);
+  }
+
+  private void onCoolDownResurrection() {
+    resurrectionCoolDownTimer = null;
+    if (resurrectionMainBarUpdateTimer != null) {
+      resurrectionMainBarUpdateTimer.cancel();
+      resurrectionMainBarUpdateTimer = null;
+    }
   }
 
   private void applyPotionEffect(EffectTarget target, PotionEffect effect) {
