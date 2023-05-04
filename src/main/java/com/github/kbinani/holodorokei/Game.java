@@ -547,6 +547,7 @@ public class Game {
     Teams.Instance().thief.removePlayer(tracking.player);
     Teams.Instance().prisoner.addPlayer(tracking.player);
     tracking.depriveSkill();
+    tracking.setArrested(true);
 
     board.update(this);
 
@@ -584,6 +585,7 @@ public class Game {
     Teams.Instance().thief.addPlayer(prisoner.player);
     prisoner.addInvulnerableByResurrection(setting.invulnerableSecondsAfterResurrection);
     thief.addInvulnerableByResurrection(setting.invulnerableSecondsAfterResurrection);
+    prisoner.setArrested(false);
 
     var server = Bukkit.getServer();
     var component = prisoner.player.teamDisplayName().append(Component.text("が逃げ出した！").color(NamedTextColor.WHITE));

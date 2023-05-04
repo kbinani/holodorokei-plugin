@@ -25,6 +25,7 @@ public class PlayerTracking {
   private @Nullable BukkitTask actionBarUpdateTimer;
   private @Nullable BukkitTask invulnerableTimeoutTimer;
   private long resurrectionTimeoutMillis;
+  private boolean arrested = false;
 
   static Random sRandom = null;
 
@@ -220,10 +221,14 @@ public class PlayerTracking {
     }
     var component = Component.empty();
     if (role == Role.THIEF) {
-      if (skill == null) {
-        component = Component.text("特殊能力：なし");
+      if (arrested) {
+        component = Component.text("捕まっています！");
       } else {
-        component = Component.text(String.format("特殊能力：%s", skill.type().description()));
+        if (skill == null) {
+          component = Component.text("特殊能力：なし");
+        } else {
+          component = Component.text(String.format("特殊能力：%s", skill.type().description()));
+        }
       }
     } else {
       if (role == Role.CLEANER) {
@@ -285,5 +290,12 @@ public class PlayerTracking {
 
   void addInvulnerableByResurrection(int seconds) {
     resurrectionTimeoutMillis = System.currentTimeMillis() + (long) seconds * 1000;
+  }
+
+  void setArrested(boolean arrested) {
+    if (role != Role.THIEF) {
+      return;
+    }
+    this.arrested = arrested;
   }
 }
