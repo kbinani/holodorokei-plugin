@@ -474,7 +474,7 @@ public class Game {
     if (System.currentTimeMillis() < resurrectionCoolDownMillis) {
       return;
     }
-    e.setCancelled(true);
+    e.setDamage(0);
 
     prisoners.remove(prisoner);
     thieves.add(prisoner);
