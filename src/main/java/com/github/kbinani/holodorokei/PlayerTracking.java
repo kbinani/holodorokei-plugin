@@ -74,7 +74,7 @@ public class PlayerTracking {
   }
 
   @Nullable
-  SkillActivationResult tryActivatingSkill() {
+  SkillActivationResult tryActivatingSkill(boolean shortened) {
     if (role == Role.CLEANER) {
       //NOTE: 掃除屋はホロ杖の効果を起動させない
       return null;
@@ -90,7 +90,11 @@ public class PlayerTracking {
       return null;
     }
     activeSkillType = skill.type();
-    skillCoolDownMillis = System.currentTimeMillis() + (long) skill.coolDownSeconds() * 1000;
+    long coolDownMillis = (long)skill.coolDownSeconds() * 1000;
+    if (role == Role.THIEF && shortened) {
+      coolDownMillis = coolDownMillis * 2 / 3;
+    }
+    skillCoolDownMillis = System.currentTimeMillis() + coolDownMillis;
     var message = player.teamDisplayName().append(Component.text("が ").color(NamedTextColor.WHITE));
     if (role == Role.RESEARCHER) {
       message = message.append(Component.text(String.format("特殊能力：研究者（%s）", skill.type().description())).color(NamedTextColor.DARK_PURPLE));

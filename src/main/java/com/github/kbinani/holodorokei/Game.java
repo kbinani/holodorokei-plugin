@@ -348,13 +348,17 @@ public class Game {
         var player = e.getPlayer();
         var tracking = findPlayer(player, false);
         if (tracking != null) {
-          var result = tracking.tryActivatingSkill();
+          var result = tracking.tryActivatingSkill(tracking.role == Role.THIEF && canThiefApplyShortCoolDown());
           if (result != null) {
             applyPotionEffect(result.target(), result.effect());
           }
         }
       }
     }
+  }
+
+  private boolean canThiefApplyShortCoolDown() {
+    return deliveryMissions.values().stream().allMatch(p -> p);
   }
 
   void onPlayerToggleSneak(PlayerToggleSneakEvent e) {
@@ -473,7 +477,6 @@ public class Game {
           server.sendMessage(Component.text("-".repeat(23)));
           server.sendMessage(Component.text("[納品ミッション成功！ドロボウ側のクールタイムが短縮された！]"));
           server.sendMessage(Component.text("-".repeat(23)));
-          //TODO: クールタイムを短縮する処理
         }
         board.update(this);
       }
