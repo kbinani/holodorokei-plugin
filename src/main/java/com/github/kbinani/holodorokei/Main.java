@@ -285,10 +285,14 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
   }
 
   private void scheduleNewGame(GameSetting setting) {
-    //TODO: setting が実際に開始可能な条件になっているか検証する
+    var server = getServer();
+    var reason = setting.canStart();
+    if (reason != null) {
+      server.sendMessage(Component.text(String.format("ゲームを開始できません。理由: %s", reason)).color(NamedTextColor.RED));
+      return;
+    }
     game = new Game(this, world, setting);
     this.setting = new GameSetting();
-    var server = getServer();
     server.sendMessage(Component.empty());
     server.sendMessage(Component.text(String.format("ゲームを開始します！（ドロボウ：%d人、ケイサツ：%d人）", game.getNumThieves(), game.getNumCops())));
     server.sendMessage(Component.empty());

@@ -180,4 +180,16 @@ public class GameSetting {
     }
     duration = 20;
   }
+
+  //NOTE: null ならスタート可, nonnull ならスタートできない理由
+  @Nullable
+  String canStart() {
+    if (thieves.size() == 0) {
+      return "ドロボウの参加人数が 0 人です";
+    }
+    if (femaleExecutive == null && researcher == null && cleaner == null) {
+      return "ケイサツの参加人数が 0 人です";
+    }
+    return null;
+  }
 }
