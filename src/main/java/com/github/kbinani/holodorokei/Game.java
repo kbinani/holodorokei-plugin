@@ -154,12 +154,12 @@ public class Game {
 
     thieves.forEach(p -> {
       giveThieveItems(p);
-      p.start();
+      p.start((int) duration);
     });
     Arrays.stream(cops).forEach(p -> {
       giveCopItems(p);
       p.selectSkill();
-      p.start();
+      p.start((int) duration);
     });
   }
 

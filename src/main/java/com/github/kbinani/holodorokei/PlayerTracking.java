@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
@@ -195,8 +196,9 @@ public class PlayerTracking {
     actionBarUpdateTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::updateActionBar, 20, 20);
   }
 
-  void start() {
+  void start(int durationMinutes) {
     updateActionBar();
+    addDefaultPotionEffect(durationMinutes);
     actionBarUpdateTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::updateActionBar, 20, 20);
   }
 
@@ -205,5 +207,16 @@ public class PlayerTracking {
       actionBarUpdateTimer.cancel();
       actionBarUpdateTimer = null;
     }
+    removeDefaultPotionEffect();
+  }
+
+  private void addDefaultPotionEffect(int minutes) {
+    int duration = minutes * 60 * 20;
+    var effect = new PotionEffect(PotionEffectType.SATURATION, duration, 1, false, false);
+    player.addPotionEffect(effect);
+  }
+
+  private void removeDefaultPotionEffect() {
+    player.removePotionEffect(PotionEffectType.SATURATION);
   }
 }
