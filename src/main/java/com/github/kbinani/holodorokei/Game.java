@@ -459,6 +459,7 @@ public class Game {
     thieves.remove(thief);
     Teams.Instance().thief.removePlayer(thief.player);
     Teams.Instance().prisoner.addPlayer(thief.player);
+    thief.depriveSkill();
 
     board.update(this);
 

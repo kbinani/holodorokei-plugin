@@ -160,6 +160,26 @@ public class PlayerTracking {
     return activeSkillType;
   }
 
+  void depriveSkill() {
+    if (coolDownTimer != null) {
+      coolDownTimer.cancel();
+      coolDownTimer = null;
+    }
+    if (invulnerableTimeoutTimer != null) {
+      invulnerableTimeoutTimer.cancel();
+      invulnerableTimeoutTimer = null;
+    }
+    if (activeSkillType != null) {
+      var effectType = activeSkillType.potionEffectType();
+      if (effectType != null && activeSkillType.target(role) == EffectTarget.SELF) {
+        player.removePotionEffect(effectType);
+      }
+    }
+    skillCoolDownMillis = 0;
+    skill = null;
+    updateActionBar();
+  }
+
   private void onCoolDown() {
     activeSkillType = null;
     coolDownTimer = null;
