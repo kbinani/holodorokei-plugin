@@ -120,4 +120,23 @@ public class DododoTown extends Area {
   DeliveryItem deliveryItem() {
     return new DeliveryItem(Material.YELLOW_WOOL, "わためぇの毛");
   }
+
+  @Override
+  Point3i evacuationLocation() {
+    //NOTE: 適当. 根拠なし
+    return new Point3i(-23, -60, 15);
+  }
+
+  @Override
+  Wall[] shutoutWalls() {
+    return new Wall[]{
+      new Wall(new Point3i(-22, -59, 17), new Point3i(-22, -43, 137)),
+      new Wall(new Point3i(-23, -59, 17), new Point3i(-140, -43, 17)),
+    };
+  }
+
+  @Override
+  BoundingBox bounds() {
+    return new BoundingBox(-141, -63, 17, -21, 384, 139);
+  }
 }

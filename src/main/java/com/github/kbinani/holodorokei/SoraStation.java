@@ -8,6 +8,7 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nullable;
 import java.security.SecureRandom;
@@ -232,5 +233,23 @@ public class SoraStation extends Area {
   @Override
   DeliveryItem deliveryItem() {
     return new DeliveryItem(Material.MINECART, "そらトレイン");
+  }
+
+  @Override
+  Wall[] shutoutWalls() {
+    return new Wall[]{
+      new Wall(new Point3i(-23, -59, -17), new Point3i(-91, -43, -17)),
+      new Wall(new Point3i(-23, -59, -18), new Point3i(-23, -43, -90)),
+    };
+  }
+
+  @Override
+  Point3i evacuationLocation() {
+    return new Point3i(-20, -60, -18);
+  }
+
+  @Override
+  BoundingBox bounds() {
+    return new BoundingBox(-92, -63, -91, -22, 384, -16);
   }
 }

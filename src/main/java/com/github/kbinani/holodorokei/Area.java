@@ -2,10 +2,7 @@ package com.github.kbinani.holodorokei;
 
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.data.BlockData;
@@ -13,6 +10,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,6 +49,15 @@ public abstract class Area {
   }
 
   abstract DeliveryItem deliveryItem();
+
+  record Wall(Point3i from, Point3i to) {
+  }
+
+  abstract Wall[] shutoutWalls();
+
+  abstract Point3i evacuationLocation();
+
+  abstract BoundingBox bounds();
 
   Area(World world) {
     this.world = world;
@@ -117,7 +124,7 @@ public abstract class Area {
     }
   }
 
-  void reset() {
+  void cleanup() {
     if (mission != null) {
       mission.cleanup(world);
       mission = null;
@@ -131,6 +138,9 @@ public abstract class Area {
     for (var p : beaconPositionList()) {
       BlockData blockData = Material.AIR.createBlockData();
       world.setBlockData(p.x, p.y, p.z, blockData);
+    }
+    for (var wall : shutoutWalls()) {
+      Editor.Fill(world, wall.from, wall.to, "air");
     }
   }
 
@@ -176,5 +186,19 @@ public abstract class Area {
       missionCompleted = true;
     }
     return cleared;
+  }
+
+  void shutout() {
+    for (var wall : shutoutWalls()) {
+      Editor.Fill(world, wall.from, wall.to, "quartz_bricks");
+    }
+    var pos = evacuationLocation();
+    Players.Within(world, new BoundingBox[]{bounds()}, p -> {
+      var mode = p.getGameMode();
+      if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) {
+        return;
+      }
+      p.teleport(new Location(world, pos.x, pos.y, pos.z));
+    });
   }
 }

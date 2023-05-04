@@ -205,4 +205,23 @@ public class SikeMura extends Area {
   DeliveryItem deliveryItem() {
     return new DeliveryItem(Material.LAVA_BUCKET, "あちゅあちゅマグマ");
   }
+
+  @Override
+  Point3i evacuationLocation() {
+    //NOTE: 適当. 根拠なし
+    return new Point3i(6, -60, -19);
+  }
+
+  @Override
+  Wall[] shutoutWalls() {
+    return new Wall[]{
+      new Wall(new Point3i(9, -59, -19), new Point3i(9, -43, -111)),
+      new Wall(new Point3i(10, -59, -19), new Point3i(75, -43, -19)),
+    };
+  }
+
+  @Override
+  BoundingBox bounds() {
+    return new BoundingBox(9, -63, -112, 77, 384, -18);
+  }
 }

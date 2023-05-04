@@ -155,4 +155,23 @@ public class ShiranuiKensetsuBuilding extends Area {
   DeliveryItem deliveryItem() {
     return new DeliveryItem(Material.NAME_TAG, "不知火建設社員証");
   }
+
+  @Override
+  Point3i evacuationLocation() {
+    //NOTE: 適当. 根拠なし
+    return new Point3i(12, -60, 16);
+  }
+
+  @Override
+  Wall[] shutoutWalls() {
+    return new Wall[]{
+      new Wall(new Point3i(2, -59, 18), new Point3i(65, -43, 18)),
+      new Wall(new Point3i(2, -59, 19), new Point3i(2, -43, 81)),
+    };
+  }
+
+  @Override
+  BoundingBox bounds() {
+    return new BoundingBox(2, -63, 18, 67, 384, 83);
+  }
 }
