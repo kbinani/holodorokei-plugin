@@ -34,7 +34,7 @@ public abstract class Area {
 
   protected Mission mission;
   boolean missionStarted = false;
-  boolean missionCompleted = false;
+  boolean missionFinished = false;
   private static @Nullable ItemStack sPlayerHead;
 
   abstract ChestPosition[] chestPositionList();
@@ -130,7 +130,7 @@ public abstract class Area {
       mission = null;
     }
     missionStarted = false;
-    missionCompleted = false;
+    missionFinished = false;
     for (var p : chestPositionList()) {
       BlockData blockData = Material.AIR.createBlockData();
       world.setBlockData(p.position.x, p.position.y, p.position.z, blockData);
@@ -145,7 +145,7 @@ public abstract class Area {
   }
 
   void startMission() {
-    if (missionStarted || missionCompleted) {
+    if (missionStarted || missionFinished) {
       return;
     }
     mission.start(world);
@@ -156,7 +156,7 @@ public abstract class Area {
     if (mission == null) {
       return false;
     }
-    if (missionCompleted) {
+    if (missionFinished) {
       return false;
     }
     if (!missionStarted) {
@@ -165,7 +165,7 @@ public abstract class Area {
     var cleared = mission.onPlayerInteract(e);
     if (cleared) {
       mission.cleanup(world);
-      missionCompleted = true;
+      missionFinished = true;
     }
     return cleared;
   }
@@ -174,7 +174,7 @@ public abstract class Area {
     if (mission == null) {
       return false;
     }
-    if (missionCompleted) {
+    if (missionFinished) {
       return false;
     }
     if (!missionStarted) {
@@ -183,7 +183,7 @@ public abstract class Area {
     var cleared = mission.onEntityMove(e);
     if (cleared) {
       mission.cleanup(world);
-      missionCompleted = true;
+      missionFinished = true;
     }
     return cleared;
   }
@@ -200,5 +200,9 @@ public abstract class Area {
       }
       p.teleport(new Location(world, pos.x, pos.y, pos.z));
     });
+    if (mission != null) {
+      mission.cleanup(world);
+      missionFinished = true;
+    }
   }
 }

@@ -743,63 +743,74 @@ public class Game {
   }
 
   private void completeAreaMission(AreaType type) {
+    int index = -1;
     for (int i = 0; i < areaMissions.length; i++) {
-      var mission = areaMissions[i];
-      if (mission.type() == type && mission.status().equals(MissionStatus.InProgress())) {
-        areaMissions[i] = new AreaMissionStatus(type, MissionStatus.Success());
-        if (areaMissionTimeoutTimer != null) {
-          areaMissionTimeoutTimer.cancel();
-          areaMissionTimeoutTimer = null;
-        }
-        var server = Bukkit.getServer();
-        Players.Within(world, new BoundingBox[]{Main.field}, (p) -> {
-          p.showTitle(Title.title(Component.text("MISSION CLEAR!!"), Component.empty()));
-        });
-        server.sendMessage(Component.empty());
-        server.sendMessage(Component.text("-".repeat(23)));
-        server.sendMessage(Component.text(String.format("[エリアミッション（%s）成功！]", type.description())));
-        server.sendMessage(Component.text("-".repeat(23)));
-        board.update(this);
-        if (missionBossBar != null) {
-          missionBossBar.cleanup();
-          missionBossBar = null;
-        }
-        return;
+      var m = areaMissions[i];
+      if (m.type() == type && m.status().equals(MissionStatus.InProgress())) {
+        index = i;
+        break;
       }
+    }
+    if (index < 0) {
+      return;
+    }
+    areaMissions[index] = new AreaMissionStatus(type, MissionStatus.Success());
+    if (areaMissionTimeoutTimer != null) {
+      areaMissionTimeoutTimer.cancel();
+      areaMissionTimeoutTimer = null;
+    }
+    var server = Bukkit.getServer();
+    Players.Within(world, new BoundingBox[]{Main.field}, (p) -> {
+      p.showTitle(Title.title(Component.text("MISSION CLEAR!!"), Component.empty()));
+    });
+    server.sendMessage(Component.empty());
+    server.sendMessage(Component.text("-".repeat(23)));
+    server.sendMessage(Component.text(String.format("[エリアミッション（%s）成功！]", type.description())));
+    server.sendMessage(Component.text("-".repeat(23)));
+    board.update(this);
+    if (missionBossBar != null) {
+      missionBossBar.cleanup();
+      missionBossBar = null;
     }
   }
 
   private void abortAreaMission(AreaType type) {
+    int index = -1;
     for (int i = 0; i < areaMissions.length; i++) {
-      var mission = areaMissions[i];
-      if (mission.type() == type && mission.status().equals(MissionStatus.InProgress())) {
-        areaMissions[i] = new AreaMissionStatus(type, MissionStatus.Fail());
-        if (areaMissionTimeoutTimer != null) {
-          areaMissionTimeoutTimer.cancel();
-          areaMissionTimeoutTimer = null;
-        }
-        var server = Bukkit.getServer();
-        Players.Within(world, new BoundingBox[]{Main.field}, (p) -> {
-          p.showTitle(Title.title(Component.text("MISSION FAILED"), Component.empty()));
-        });
-        server.sendMessage(Component.empty());
-        server.sendMessage(Component.text("-".repeat(23)));
-        server.sendMessage(Component.text(String.format("[エリアミッション（%s）失敗！]", type.description())));
-        server.sendMessage(Component.text("-".repeat(23)));
-        server.sendMessage(Component.empty());
-        server.sendMessage(Component.text("-".repeat(23)));
-        server.sendMessage(Component.text("※警告※").color(NamedTextColor.RED));
-        server.sendMessage(Component.text(String.format("【%s】エリアが10秒後に封鎖されます！", type.description())));
-        server.sendMessage(Component.text("-".repeat(23)));
-        board.update(this);
-        if (missionBossBar != null) {
-          missionBossBar.cleanup();
-          missionBossBar = null;
-        }
-        areaShutoutTimers.put(type, server.getScheduler().runTaskLater(delegate.mainDelegateGetOwner(), () -> shutoutArea(type), 10 * 20));
-        return;
+      var m = areaMissions[i];
+      if (m.type() == type && m.status().equals(MissionStatus.InProgress())) {
+        index = i;
+        break;
       }
     }
+    if (index < 0) {
+      return;
+    }
+    areaMissions[index] = new AreaMissionStatus(type, MissionStatus.Fail());
+    if (areaMissionTimeoutTimer != null) {
+      areaMissionTimeoutTimer.cancel();
+      areaMissionTimeoutTimer = null;
+    }
+    var server = Bukkit.getServer();
+    Players.Within(world, new BoundingBox[]{Main.field}, (p) -> {
+      p.showTitle(Title.title(Component.text("MISSION FAILED"), Component.empty()));
+    });
+    server.sendMessage(Component.empty());
+    server.sendMessage(Component.text("-".repeat(23)));
+    server.sendMessage(Component.text(String.format("[エリアミッション（%s）失敗！]", type.description())));
+    server.sendMessage(Component.text("-".repeat(23)));
+    server.sendMessage(Component.empty());
+    server.sendMessage(Component.text("-".repeat(23)));
+    server.sendMessage(Component.text("※警告※").color(NamedTextColor.RED));
+    server.sendMessage(Component.text(String.format("【%s】エリアが10秒後に封鎖されます！", type.description())));
+    server.sendMessage(Component.text("-".repeat(23)));
+    board.update(this);
+    if (missionBossBar != null) {
+      missionBossBar.cleanup();
+      missionBossBar = null;
+    }
+
+    areaShutoutTimers.put(type, server.getScheduler().runTaskLater(delegate.mainDelegateGetOwner(), () -> shutoutArea(type), 10 * 20));
   }
 
   private void shutoutArea(AreaType type) {
