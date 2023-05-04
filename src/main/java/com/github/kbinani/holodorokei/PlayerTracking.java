@@ -23,6 +23,7 @@ public class PlayerTracking {
   private @Nullable BukkitTask coolDownTimer;
   private final @Nonnull MainDelegate delegate;
   private @Nullable BukkitTask actionBarUpdateTimer;
+  private @Nullable BukkitTask invulnerableTimeoutTimer;
 
   static Random sRandom = null;
 
@@ -88,10 +89,6 @@ public class PlayerTracking {
     if (skill == null) {
       return null;
     }
-    var effect = skill.createPotionEffect();
-    if (effect == null) {
-      return null;
-    }
     activeSkillType = skill.type();
     skillCoolDownMillis = System.currentTimeMillis() + (long) skill.coolDownSeconds() * 1000;
     var message = player.teamDisplayName().append(Component.text("が ").color(NamedTextColor.WHITE));
@@ -108,9 +105,26 @@ public class PlayerTracking {
     coolDownTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), this::onCoolDown, skill.cooldownTicks());
     restartActionBarUpdateTimer();
     if (skill.target() == EffectTarget.SELF) {
-      player.addPotionEffect(effect);
+      if (skill.type() == SkillType.INVULNERABLE) {
+        if (invulnerableTimeoutTimer != null) {
+          invulnerableTimeoutTimer.cancel();
+        }
+        invulnerableTimeoutTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), () -> {
+          activeSkillType = null;
+          updateActionBar();
+        }, skill.effectiveTicks());
+      } else {
+        var effect = skill.createPotionEffect();
+        if (effect != null) {
+          player.addPotionEffect(effect);
+        }
+      }
       return null;
     } else {
+      var effect = skill.createPotionEffect();
+      if (effect == null) {
+        return null;
+      }
       return new SkillActivationResult(skill.target(), effect);
     }
   }
@@ -139,6 +153,11 @@ public class PlayerTracking {
     var effect = this.skill.createPotionEffect();
     assert (effect != null);
     player.addPotionEffect(effect);
+  }
+
+  @Nullable
+  SkillType getActiveSkillType() {
+    return activeSkillType;
   }
 
   private void onCoolDown() {

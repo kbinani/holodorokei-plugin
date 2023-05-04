@@ -432,12 +432,22 @@ public class Game {
   }
 
   private void thiefHitByZombie(PlayerTracking thief, Zombie zombie, EntityDamageByEntityEvent e) {
+    var skill = thief.getActiveSkillType();
+    if (skill == SkillType.INVULNERABLE) {
+      e.setDamage(0);
+      return;
+    }
     //TODO: リスポーン位置は牢屋?
     thief.player.setBedSpawnLocation(new Location(world, kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z), true);
     thief.player.setHealth(0);
   }
 
   private void thiefHitByCop(PlayerTracking thief, PlayerTracking cop, EntityDamageByEntityEvent e) {
+    var skill = thief.getActiveSkillType();
+    if (skill == SkillType.INVULNERABLE) {
+      e.setDamage(0);
+      return;
+    }
     var server = Bukkit.getServer();
     var component = thief.player.teamDisplayName().append(Component.text("が捕まった！").color(NamedTextColor.WHITE));
     server.sendMessage(component);
