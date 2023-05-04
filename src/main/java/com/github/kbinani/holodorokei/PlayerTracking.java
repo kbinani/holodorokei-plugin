@@ -112,8 +112,7 @@ public class PlayerTracking {
     restartActionBarUpdateTimer();
     if (skill.target() == EffectTarget.SELF) {
       if (skill.type() == SkillType.INVULNERABLE) {
-        var effect = new PotionEffect(PotionEffectType.HEAL, skill.effectiveTicks(), 1);
-        player.addPotionEffect(effect);
+        addInvulnerablePotionEffect(skill.effectiveTicks());
 
         if (invulnerableTimeoutTimer != null) {
           invulnerableTimeoutTimer.cancel();
@@ -288,8 +287,14 @@ public class PlayerTracking {
     player.removePotionEffect(PotionEffectType.SATURATION);
   }
 
+  private void addInvulnerablePotionEffect(int ticks) {
+    var effect = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, ticks, 10);
+    player.addPotionEffect(effect);
+  }
+
   void addInvulnerableByResurrection(int seconds) {
     resurrectionTimeoutMillis = System.currentTimeMillis() + (long) seconds * 1000;
+    addInvulnerablePotionEffect(seconds * 20);
   }
 
   void setArrested(boolean arrested) {
