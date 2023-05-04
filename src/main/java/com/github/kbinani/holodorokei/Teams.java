@@ -37,7 +37,6 @@ public class Teams {
 
   static void Reset() {
     instance.thief.unregister();
-    ;
     instance.cop.unregister();
     instance.prisoner.unregister();
     instance.manager.unregister();

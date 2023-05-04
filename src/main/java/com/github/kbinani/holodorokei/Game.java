@@ -294,7 +294,10 @@ public class Game {
   }
 
   void terminate() {
-    setting.reset();
+    thieves.forEach(p -> Teams.Instance().thief.removePlayer(p.player));
+    prisoners.forEach(p -> Teams.Instance().prisoner.removePlayer(p.player));
+    Arrays.stream(cops).forEach(p -> Teams.Instance().cop.removePlayer(p.player));
+    setting.managers.forEach(p -> Teams.Instance().manager.removePlayer(p));
     for (var area : areas) {
       area.cleanup();
     }
