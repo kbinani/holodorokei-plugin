@@ -115,4 +115,9 @@ public class DododoTown extends Area {
   Mission initializeMission(World world) {
     return new CMission();
   }
+
+  @Override
+  DeliveryItem deliveryItem() {
+    return new DeliveryItem(Material.YELLOW_WOOL, "わためぇの毛");
+  }
 }

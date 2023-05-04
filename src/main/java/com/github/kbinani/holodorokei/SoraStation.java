@@ -228,4 +228,9 @@ public class SoraStation extends Area {
   Mission initializeMission(World world) {
     return new CMission();
   }
+
+  @Override
+  DeliveryItem deliveryItem() {
+    return new DeliveryItem(Material.MINECART, "そらトレイン");
+  }
 }

@@ -14,6 +14,9 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class Area {
   static class ChestPosition {
@@ -41,6 +44,11 @@ public abstract class Area {
 
   abstract AreaType type();
 
+  record DeliveryItem(Material material, String text) {
+  }
+
+  abstract DeliveryItem deliveryItem();
+
   Area(World world) {
     this.world = world;
   }
@@ -61,7 +69,10 @@ public abstract class Area {
   }
 
   void initialize() {
-    for (var p : chestPositionList()) {
+    var positions = new ArrayList<>(List.of(chestPositionList()));
+    Collections.shuffle(positions);
+    for (int i = 0; i < positions.size(); i++) {
+      var p = positions.get(i);
       var blockData = Material.CHEST.createBlockData("[facing=" + p.facing.name().toLowerCase() + "]");
       world.setBlockData(p.position.x, p.position.y, p.position.z, blockData);
       var block = world.getBlockAt(p.position.x, p.position.y, p.position.z);
@@ -70,10 +81,21 @@ public abstract class Area {
       }
       var inventory = chest.getInventory();
       inventory.clear();
-      var item = CreateHoloXerHead();
-      inventory.setItem(13, item);
+      if (i == 0) {
+        var deliveryItem = this.deliveryItem();
+        var item = new ItemStack(deliveryItem.material, 1);
+        var meta = item.getItemMeta();
+        if (meta != null) {
+          meta.displayName(Component.text(deliveryItem.text));
+          meta.lore(List.of(Component.text("全4エリアのアイテムを全て納品すると...？")));
+          item.setItemMeta(meta);
+        }
+        inventory.setItem(13, item);
+      } else {
+        var holoXerHead = CreateHoloXerHead();
+        inventory.setItem(13, holoXerHead);
+      }
     }
-    //TODO: チェストのうちどれか 1 個だけ納品アイテムを入れる
     for (var p : beaconPositionList()) {
       BlockData blockData = Material.BEACON.createBlockData();
       world.setBlockData(p.x, p.y, p.z, blockData);

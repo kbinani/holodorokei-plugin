@@ -150,4 +150,9 @@ public class ShiranuiKensetsuBuilding extends Area {
   Mission initializeMission(World world) {
     return new CMission();
   }
+
+  @Override
+  DeliveryItem deliveryItem() {
+    return new DeliveryItem(Material.NAME_TAG, "不知火建設社員証");
+  }
 }

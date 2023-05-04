@@ -200,4 +200,9 @@ public class SikeMura extends Area {
   Mission initializeMission(World world) {
     return new CMission();
   }
+
+  @Override
+  DeliveryItem deliveryItem() {
+    return new DeliveryItem(Material.LAVA_BUCKET, "あちゅあちゅマグマ");
+  }
 }
