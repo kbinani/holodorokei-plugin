@@ -592,14 +592,21 @@ public class Game {
     var server = Bukkit.getServer();
     var scheduler = server.getScheduler();
     areaMissionTimeoutTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), () -> abortAreaMission(type), 20 * 60 * 3);
+    var notified = new HashSet<Player>();
+    thieves.forEach(p -> {
+      sendMissionStartMessage(p.player, type.description());
+      notified.add(p.player);
+    });
+    Arrays.stream(cops).forEach(p -> {
+      sendMissionStartMessage(p.player, "？？？");
+      notified.add(p.player);
+    });
     Players.Within(world, new BoundingBox[]{Main.field}, (p) -> {
       p.showTitle(Title.title(Component.text("MISSION START!"), Component.empty()));
+      if (!notified.contains(p)) {
+        sendMissionStartMessage(p, type.description());
+      }
     });
-    server.sendMessage(Component.empty());
-    server.sendMessage(Component.text("-".repeat(23)));
-    //TODO: ケイサツには "？？？" と表示する
-    server.sendMessage(Component.text(String.format("[エリアミッション（%s）スタート！]", type.description())));
-    server.sendMessage(Component.text("-".repeat(23)));
     for (var area : areas) {
       if (area.type() == type) {
         area.startMission();
@@ -619,6 +626,13 @@ public class Game {
       missionBossBar.name(active.bossBarComponent());
     }
     missionBossBar.update();
+  }
+
+  private void sendMissionStartMessage(Player p, String missionName) {
+    p.sendMessage(Component.empty());
+    p.sendMessage(Component.text("-".repeat(23)));
+    p.sendMessage(Component.text(String.format("[エリアミッション（%s）スタート！]", missionName)));
+    p.sendMessage(Component.text("-".repeat(23)));
   }
 
   private void completeAreaMission(AreaType type) {
