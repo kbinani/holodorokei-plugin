@@ -66,6 +66,7 @@ public class PlayerTracking {
       }
       case MANAGER -> this.skill = null;
     }
+    updateActionBar();
   }
 
   record SkillActivationResult(EffectTarget target, PotionEffect effect) {
