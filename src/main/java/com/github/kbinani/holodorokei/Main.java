@@ -14,6 +14,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
@@ -206,6 +207,14 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
       return;
     }
     game.onPlayerItemDamage(e);
+  }
+
+  @EventHandler
+  public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
+    if (game == null) {
+      return;
+    }
+    game.onEntityDamageByEntity(e);
   }
 
   private void setup() {

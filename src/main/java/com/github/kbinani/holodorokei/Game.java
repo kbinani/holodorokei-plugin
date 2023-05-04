@@ -5,17 +5,16 @@ import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Zombie;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -393,6 +392,92 @@ public class Game {
     e.setCancelled(true);
   }
 
+  void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
+    // ゾンビ => thief: 即死, 牢屋に転送?
+    // cop => thief: 即死, 牢屋に転送して prisoner に変換
+    // thief => ゾンビ: 即死
+    // thief => prisoner: 生還
+    var attacker = e.getDamager();
+    var defender = e.getEntity();
+    if (attacker instanceof Player playerAttacker) {
+      var copAttacker = findCopPlayer(playerAttacker);
+      if (copAttacker == null) {
+        var thiefAttacker = findThiefPlayer(playerAttacker);
+        if (thiefAttacker == null) {
+          return;
+        }
+        if (defender instanceof Zombie zombieDefender) {
+          zombieHitByThief(zombieDefender, thiefAttacker, e);
+        } else if (defender instanceof Player defenderPlayer) {
+          var prisonerDefender = findPrisonerPlayer(defenderPlayer);
+          if (prisonerDefender == null) {
+            return;
+          }
+          prisonerHitByThief(prisonerDefender, thiefAttacker, e);
+        }
+      } else if (defender instanceof Player playerDefender) {
+        var thiefDefender = findThiefPlayer(playerDefender);
+        if (thiefDefender == null) {
+          return;
+        }
+        thiefHitByCop(thiefDefender, copAttacker, e);
+      }
+    } else if (attacker instanceof Zombie zombieAttacker && defender instanceof Player playerDefender) {
+      var thiefDefender = findThiefPlayer(playerDefender);
+      if (thiefDefender == null) {
+        return;
+      }
+      thiefHitByZombie(thiefDefender, zombieAttacker, e);
+    }
+  }
+
+  private void thiefHitByZombie(PlayerTracking thief, Zombie zombie, EntityDamageByEntityEvent e) {
+    //TODO: リスポーン位置は牢屋?
+    thief.player.setBedSpawnLocation(new Location(world, kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z), true);
+    thief.player.setHealth(0);
+  }
+
+  private void thiefHitByCop(PlayerTracking thief, PlayerTracking cop, EntityDamageByEntityEvent e) {
+    var server = Bukkit.getServer();
+    var component = thief.player.teamDisplayName().append(Component.text("が捕まった！").color(NamedTextColor.WHITE));
+    server.sendMessage(component);
+
+    thief.player.setBedSpawnLocation(new Location(world, kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z), true);
+    thief.player.setHealth(0);
+    prisoners.add(thief);
+    thieves.remove(thief);
+    Teams.Instance().thief.removePlayer(thief.player);
+    Teams.Instance().prisoner.addPlayer(thief.player);
+
+    board.update(this);
+
+    //TODO: 終了判定
+  }
+
+  private void zombieHitByThief(Zombie zombie, PlayerTracking thief, EntityDamageByEntityEvent e) {
+    zombie.remove();
+  }
+
+  private void prisonerHitByThief(PlayerTracking prisoner, PlayerTracking thief, EntityDamageByEntityEvent e) {
+    e.setCancelled(true);
+
+    var server = Bukkit.getServer();
+    var component = prisoner.player.teamDisplayName().append(Component.text("が逃げ出した！").color(NamedTextColor.WHITE));
+    server.sendMessage(component);
+
+    prisoners.remove(prisoner);
+    thieves.add(prisoner);
+    var p = kEscapeLocation;
+    prisoner.player.teleport(new Location(world, p.x, p.y, p.z));
+    thief.player.teleport(new Location(world, p.x, p.y, p.z));
+    Teams.Instance().prisoner.removePlayer(prisoner.player);
+    Teams.Instance().thief.addPlayer(prisoner.player);
+
+    board.update(this);
+
+    //TODO: 復活クールタイム
+  }
+
   private void applyPotionEffect(EffectTarget target, PotionEffect effect) {
     if (target == EffectTarget.THIEF) {
       thieves.forEach(t -> t.player.addPotionEffect(effect));
@@ -422,6 +507,29 @@ public class Game {
       }
     }
     return null;
+  }
+
+  private @Nullable PlayerTracking findCopPlayer(Player player) {
+    if (femaleExecutive != null && femaleExecutive.player.equals(player)) {
+      return femaleExecutive;
+    }
+    if (researcher != null && researcher.player.equals(player)) {
+      return researcher;
+    }
+    if (cleaner != null && cleaner.player.equals(player)) {
+      return cleaner;
+    }
+    return null;
+  }
+
+  private @Nullable PlayerTracking findThiefPlayer(Player player) {
+    var thief = thieves.stream().filter(p -> p.player.equals(player)).findFirst();
+    return thief.orElse(null);
+  }
+
+  private @Nullable PlayerTracking findPrisonerPlayer(Player player) {
+    var prisoner = prisoners.stream().filter(p -> p.player.equals(player)).findFirst();
+    return prisoner.orElse(null);
   }
 
   void onEntityMove(EntityMoveEvent e) {
@@ -576,4 +684,6 @@ public class Game {
   private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);
   private final Point3i kContainerHopperDeliveryPost = new Point3i(-5, -61, -25);
   private final String kItemTag = "holodorokei_item";
+  private final Point3i kPrisonCenter = new Point3i(-5, -54, 1);
+  private final Point3i kEscapeLocation = new Point3i(12, -60, 1);
 }
