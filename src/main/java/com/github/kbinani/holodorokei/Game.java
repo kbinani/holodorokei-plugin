@@ -15,6 +15,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -59,14 +60,10 @@ public class Game {
   private @Nullable BukkitTask resurrectionMainBarUpdateTimer;
   private @Nonnull
   final MainDelegate delegate;
+  private final UUID sessionId;
 
   private AreaMissionStatus[] areaMissions = new AreaMissionStatus[]{};
-  private final DeliveryMissionStatus[] deliveryMissions = new DeliveryMissionStatus[]{
-    new DeliveryMissionStatus(AreaType.SORA_STATION, false),
-    new DeliveryMissionStatus(AreaType.SIKE_MURA, false),
-    new DeliveryMissionStatus(AreaType.SHIRANUI_KENSETSU, false),
-    new DeliveryMissionStatus(AreaType.DODODO_TOWN, false),
-  };
+  private final Map<AreaType, Boolean> deliveryMissions;
 
   Game(@Nonnull MainDelegate delegate, World world, GameSetting setting) {
     this.world = world;
@@ -76,9 +73,14 @@ public class Game {
     this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world);
     this.dododoTown = new DododoTown(world);
     this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
+    this.deliveryMissions = new HashMap<>();
+    Arrays.stream(AreaType.values()).forEach(type -> {
+      deliveryMissions.put(type, false);
+    });
     this.board = new ProgressBoardSet();
     this.duration = setting.duration;
     this.delegate = delegate;
+    this.sessionId = UUID.randomUUID();
 
     record Entry(AreaType type, int minutes) {
       AreaMissionStatus toStatus() {
@@ -125,7 +127,7 @@ public class Game {
       inventory.clear();
     }
     for (var area : areas) {
-      area.initialize();
+      area.initialize(sessionId);
     }
     board.update(this);
 
@@ -432,6 +434,52 @@ public class Game {
     }
   }
 
+  void onInventoryMoveItem(InventoryMoveItemEvent e) {
+    var source = e.getSource().getLocation();
+    var destination = e.getDestination().getLocation();
+    if (source == null || destination == null) {
+      return;
+    }
+    if (!kContainerChestDeliveryPost.equals(new Point3i(source))) {
+      return;
+    }
+    if (!kContainerHopperDeliveryPost.equals(new Point3i(destination))) {
+      return;
+    }
+    var actual = e.getItem();
+    for (var area : areas) {
+      if (deliveryMissions.getOrDefault(area.type(), false)) {
+        continue;
+      }
+      var expected = area.deliveryItem();
+      if (actual.getType() != expected.material()) {
+        continue;
+      }
+      var meta = actual.getItemMeta();
+      if (meta == null) {
+        continue;
+      }
+      var container = meta.getPersistentDataContainer();
+      var sessionId = container.get(NamespacedKey.minecraft(Main.kDeliveryItemSessionIdKey), PersistentDataType.STRING);
+      if (sessionId == null) {
+        continue;
+      }
+      if (sessionId.equals(this.sessionId.toString())) {
+        var server = Bukkit.getServer();
+        server.sendMessage(Component.text(String.format("[納品ミッション] %sのアイテムを納品した！", area.type().description())));
+        deliveryMissions.put(area.type(), true);
+        if (deliveryMissions.values().stream().allMatch(p -> p)) {
+          server.sendMessage(Component.empty());
+          server.sendMessage(Component.text("-".repeat(23)));
+          server.sendMessage(Component.text("[納品ミッション成功！ドロボウ側のクールタイムが短縮された！]"));
+          server.sendMessage(Component.text("-".repeat(23)));
+          //TODO: クールタイムを短縮する処理
+        }
+        board.update(this);
+      }
+    }
+  }
+
   private void thiefHitByZombie(PlayerTracking thief, Zombie zombie, EntityDamageByEntityEvent e) {
     var skill = thief.getActiveSkillType();
     if (skill == SkillType.INVULNERABLE) {
@@ -577,7 +625,13 @@ public class Game {
   }
 
   DeliveryMissionStatus[] getDeliveryMissions() {
-    return this.deliveryMissions;
+    var missions = new ArrayList<DeliveryMissionStatus>();
+    var orderedTypes = new AreaType[]{AreaType.SORA_STATION, AreaType.SIKE_MURA, AreaType.SHIRANUI_KENSETSU, AreaType.DODODO_TOWN};
+    for (var type : orderedTypes) {
+      var s = deliveryMissions.getOrDefault(type, false);
+      missions.add(new DeliveryMissionStatus(type, s));
+    }
+    return missions.toArray(new DeliveryMissionStatus[]{});
   }
 
   private void startAreaMission(AreaType type) {

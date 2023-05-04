@@ -16,6 +16,7 @@ import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -217,6 +218,14 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
     game.onEntityDamageByEntity(e);
   }
 
+  @EventHandler
+  public void onInventoryMoveItem(InventoryMoveItemEvent e) {
+    if (game == null) {
+      return;
+    }
+    game.onInventoryMoveItem(e);
+  }
+
   private void setup() {
     Editor.WallSign(world, kButtonEntryThief, BlockFace.NORTH, DyeColor.YELLOW, "ドロボウでエントリー", "");
     Editor.WallSign(world, kButtonEntryCopFemaleExecutive, BlockFace.NORTH, DyeColor.RED, "ケイサツでエントリー", "（女幹部）");
@@ -311,6 +320,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
   private final Point3i kButtonLeave = new Point3i(5, -63, -14);
 
   public static final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
+  public static final String kDeliveryItemSessionIdKey = "holodorokei_session_id";
 
   @Override
   public void mainDelegateDidFinishGame() {

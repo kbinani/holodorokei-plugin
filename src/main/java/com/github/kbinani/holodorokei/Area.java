@@ -4,6 +4,7 @@ import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
@@ -11,12 +12,13 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public abstract class Area {
   static class ChestPosition {
@@ -68,7 +70,7 @@ public abstract class Area {
     return sPlayerHead.clone();
   }
 
-  void initialize() {
+  void initialize(UUID sessionId) {
     var positions = new ArrayList<>(List.of(chestPositionList()));
     Collections.shuffle(positions);
     for (int i = 0; i < positions.size(); i++) {
@@ -88,6 +90,8 @@ public abstract class Area {
         if (meta != null) {
           meta.displayName(Component.text(deliveryItem.text));
           meta.lore(List.of(Component.text("全4エリアのアイテムを全て納品すると...？")));
+          var container = meta.getPersistentDataContainer();
+          container.set(NamespacedKey.minecraft(Main.kDeliveryItemSessionIdKey), PersistentDataType.STRING, sessionId.toString());
           item.setItemMeta(meta);
         }
         inventory.setItem(13, item);
