@@ -11,6 +11,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
@@ -345,14 +346,43 @@ public class Game {
     }
     if (e.getHand() == EquipmentSlot.HAND && (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) {
       var item = e.getItem();
-      if (item != null && item.getType() == Material.CARROT_ON_A_STICK) {
-        var player = e.getPlayer();
+      if (item != null) {
+        useItem(e.getPlayer(), item, e);
+      }
+    }
+  }
+
+  private void useItem(Player player, ItemStack item, Cancellable cancellable) {
+    var meta = item.getItemMeta();
+    if (meta == null) {
+      return;
+    }
+    var container = meta.getPersistentDataContainer();
+    var value = container.get(NamespacedKey.minecraft(kItemTag), PersistentDataType.BYTE);
+    if (value == null) {
+      return;
+    }
+    switch (item.getType()) {
+      case CARROT_ON_A_STICK -> {
         var tracking = findPlayer(player, false);
-        if (tracking != null) {
-          var result = tracking.tryActivatingSkill(tracking.role == Role.THIEF && canThiefApplyShortCoolDown());
-          if (result != null) {
-            applyPotionEffect(result.target(), result.effect());
-          }
+        if (tracking == null) {
+          return;
+        }
+        var result = tracking.tryActivatingSkill(tracking.role == Role.THIEF && canThiefApplyShortCoolDown());
+        if (result != null) {
+          applyPotionEffect(result.target(), result.effect());
+        }
+      }
+      case SPLASH_POTION -> {
+        var tracking = findPlayer(player, false);
+        if (tracking == null) {
+          return;
+        }
+        cancellable.setCancelled(true);
+        if (tracking.role == Role.THIEF) {
+          arrest(tracking);
+        } else {
+          tracking.player.teleport(new Location(world, kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z));
         }
       }
     }
@@ -499,17 +529,21 @@ public class Game {
       e.setDamage(0);
       return;
     }
+    arrest(thief);
+  }
+
+  private void arrest(PlayerTracking tracking) {
     var server = Bukkit.getServer();
-    var component = thief.player.teamDisplayName().append(Component.text("が捕まった！").color(NamedTextColor.WHITE));
+    var component = tracking.player.teamDisplayName().append(Component.text("が捕まった！").color(NamedTextColor.WHITE));
     server.sendMessage(component);
 
-    thief.player.setBedSpawnLocation(new Location(world, kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z), true);
-    thief.player.setHealth(0);
-    prisoners.add(thief);
-    thieves.remove(thief);
-    Teams.Instance().thief.removePlayer(thief.player);
-    Teams.Instance().prisoner.addPlayer(thief.player);
-    thief.depriveSkill();
+    tracking.player.setBedSpawnLocation(new Location(world, kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z), true);
+    tracking.player.setHealth(0);
+    prisoners.add(tracking);
+    thieves.remove(tracking);
+    Teams.Instance().thief.removePlayer(tracking.player);
+    Teams.Instance().prisoner.addPlayer(tracking.player);
+    tracking.depriveSkill();
 
     board.update(this);
 
