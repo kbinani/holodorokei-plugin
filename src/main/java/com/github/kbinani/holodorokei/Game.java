@@ -431,7 +431,7 @@ public class Game {
   }
 
   void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
-    // ゾンビ => thief: 即死, 牢屋に転送?
+    // ゾンビ => thief: 即死, 牢屋に転送して prisoner に変換
     // cop => thief: 即死, 牢屋に転送して prisoner に変換
     // thief => ゾンビ: 即死
     // thief => prisoner: 生還
@@ -445,27 +445,27 @@ public class Game {
           return;
         }
         if (defender instanceof Zombie zombieDefender) {
-          zombieHitByThief(zombieDefender, thiefAttacker, e);
+          zombieDamageByThief(zombieDefender, thiefAttacker, e);
         } else if (defender instanceof Player defenderPlayer) {
           var prisonerDefender = findPrisonerPlayer(defenderPlayer);
           if (prisonerDefender == null) {
             return;
           }
-          prisonerHitByThief(prisonerDefender, thiefAttacker, e);
+          prisonerDamageByThief(prisonerDefender, thiefAttacker, e);
         }
       } else if (defender instanceof Player playerDefender) {
         var thiefDefender = findThiefPlayer(playerDefender);
         if (thiefDefender == null) {
           return;
         }
-        thiefHitByCop(thiefDefender, copAttacker, e);
+        thiefDamageByCop(thiefDefender, copAttacker, e);
       }
     } else if (attacker instanceof Zombie zombieAttacker && defender instanceof Player playerDefender) {
       var thiefDefender = findThiefPlayer(playerDefender);
       if (thiefDefender == null) {
         return;
       }
-      thiefHitByZombie(thiefDefender, zombieAttacker, e);
+      thiefDamageByZombie(thiefDefender, zombieAttacker, e);
     }
   }
 
@@ -514,17 +514,15 @@ public class Game {
     }
   }
 
-  private void thiefHitByZombie(PlayerTracking thief, Zombie zombie, EntityDamageByEntityEvent e) {
+  private void thiefDamageByZombie(PlayerTracking thief, Zombie zombie, EntityDamageByEntityEvent e) {
     if (thief.isInvulnerable()) {
       e.setDamage(0);
       return;
     }
-    //TODO: リスポーン位置は牢屋?
-    thief.player.setBedSpawnLocation(new Location(world, kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z), true);
-    thief.player.setHealth(0);
+    arrest(thief);
   }
 
-  private void thiefHitByCop(PlayerTracking thief, PlayerTracking cop, EntityDamageByEntityEvent e) {
+  private void thiefDamageByCop(PlayerTracking thief, PlayerTracking cop, EntityDamageByEntityEvent e) {
     if (thief.isInvulnerable()) {
       e.setDamage(0);
       return;
@@ -562,11 +560,11 @@ public class Game {
     }
   }
 
-  private void zombieHitByThief(Zombie zombie, PlayerTracking thief, EntityDamageByEntityEvent e) {
+  private void zombieDamageByThief(Zombie zombie, PlayerTracking thief, EntityDamageByEntityEvent e) {
     zombie.remove();
   }
 
-  private void prisonerHitByThief(PlayerTracking prisoner, PlayerTracking thief, EntityDamageByEntityEvent e) {
+  private void prisonerDamageByThief(PlayerTracking prisoner, PlayerTracking thief, EntityDamageByEntityEvent e) {
     if (System.currentTimeMillis() < resurrectionCoolDownMillis) {
       return;
     }
