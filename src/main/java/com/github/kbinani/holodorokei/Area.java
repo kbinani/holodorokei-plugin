@@ -1,15 +1,19 @@
 package com.github.kbinani.holodorokei;
 
 import io.papermc.paper.event.entity.EntityMoveEvent;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class Area {
   static class ChestPosition {
@@ -27,6 +31,7 @@ public abstract class Area {
   protected Mission mission;
   boolean missionStarted = false;
   boolean missionCompleted = false;
+  private static @Nullable ItemStack sPlayerHead;
 
   abstract ChestPosition[] chestPositionList();
 
@@ -40,18 +45,35 @@ public abstract class Area {
     this.world = world;
   }
 
+  private static @Nonnull ItemStack CreateHoloXerHead() {
+    if (sPlayerHead == null) {
+      var item = new ItemStack(Material.PLAYER_HEAD);
+      if (item.getItemMeta() instanceof SkullMeta skull) {
+        var server = Bukkit.getServer();
+        var staff1 = server.getOfflinePlayer("UNEI_Staff1");
+        skull.setOwningPlayer(staff1);
+        skull.displayName(Component.text("holoXerの頭"));
+        item.setItemMeta(skull);
+      }
+      sPlayerHead = item;
+    }
+    return sPlayerHead.clone();
+  }
+
   void initialize() {
     for (var p : chestPositionList()) {
-      BlockData blockData = Material.CHEST.createBlockData("[facing=" + p.facing.name().toLowerCase() + "]");
+      var blockData = Material.CHEST.createBlockData("[facing=" + p.facing.name().toLowerCase() + "]");
       world.setBlockData(p.position.x, p.position.y, p.position.z, blockData);
-      Block block = world.getBlockAt(p.position.x, p.position.y, p.position.z);
-      BlockState state = block.getState();
-      if (!(state instanceof Chest chest)) {
+      var block = world.getBlockAt(p.position.x, p.position.y, p.position.z);
+      if (!(block.getState() instanceof Chest chest)) {
         continue;
       }
-      Inventory inventory = chest.getInventory();
+      var inventory = chest.getInventory();
       inventory.clear();
+      var item = CreateHoloXerHead();
+      inventory.setItem(13, item);
     }
+    //TODO: チェストのうちどれか 1 個だけ納品アイテムを入れる
     for (var p : beaconPositionList()) {
       BlockData blockData = Material.BEACON.createBlockData();
       world.setBlockData(p.x, p.y, p.z, blockData);
