@@ -94,6 +94,7 @@ public class ShiranuiKensetsuBuilding extends Area {
           skeleton.setPersistent(true);
           skeleton.setCanPickupItems(false);
           id.set(skeleton.getUniqueId());
+          Teams.Instance().cop.addEntity(skeleton);
 
           minecart.addPassenger(skeleton);
         });

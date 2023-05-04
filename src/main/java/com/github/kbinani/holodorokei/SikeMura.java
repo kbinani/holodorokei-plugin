@@ -137,6 +137,7 @@ public class SikeMura extends Area {
         zombie.setPersistent(true);
         zombie.setCanPickupItems(false);
         id.set(zombie.getUniqueId());
+        Teams.Instance().cop.addEntity(zombie);
       });
       var server = Bukkit.getServer();
       CommandSender sender = server.getConsoleSender();
