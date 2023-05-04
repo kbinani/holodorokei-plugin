@@ -17,6 +17,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
@@ -385,6 +386,10 @@ public class Game {
   }
 
   void onBlockDropItem(BlockDropItemEvent e) {
+    e.setCancelled(true);
+  }
+
+  void onPlayerItemDamage(PlayerItemDamageEvent e) {
     e.setCancelled(true);
   }
 
