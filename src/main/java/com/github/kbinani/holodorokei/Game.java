@@ -515,7 +515,19 @@ public class Game {
 
     board.update(this);
 
-    //TODO: 終了判定
+    if (thieves.isEmpty()) {
+      server.sendMessage(Component.empty());
+      server.sendMessage(Component.text("-".repeat(23)));
+      server.sendMessage(Component.text("[結果発表]"));
+      server.sendMessage(Component.text("ドロボウが全員捕まった！"));
+      server.sendMessage(Component.empty());
+      server.sendMessage(Component.text("ケイサツの勝利！"));
+      server.sendMessage(Component.text("-".repeat(23)));
+      server.sendMessage(Component.empty());
+
+      terminate();
+      delegate.mainDelegateDidFinishGame();
+    }
   }
 
   private void zombieHitByThief(Zombie zombie, PlayerTracking thief, EntityDamageByEntityEvent e) {
@@ -787,6 +799,7 @@ public class Game {
       server.sendMessage(Component.text("ケイサツの勝利！"));
     }
     server.sendMessage(Component.text("-".repeat(23)));
+    server.sendMessage(Component.empty());
 
     terminate();
     delegate.mainDelegateDidFinishGame();
