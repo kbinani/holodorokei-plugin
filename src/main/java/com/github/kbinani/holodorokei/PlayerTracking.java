@@ -90,7 +90,7 @@ public class PlayerTracking {
       return null;
     }
     activeSkillType = skill.type();
-    long coolDownMillis = (long)skill.coolDownSeconds() * 1000;
+    long coolDownMillis = (long) skill.coolDownSeconds() * 1000;
     if (role == Role.THIEF && shortened) {
       coolDownMillis = coolDownMillis * 2 / 3;
     }

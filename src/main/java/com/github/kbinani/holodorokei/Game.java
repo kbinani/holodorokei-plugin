@@ -31,6 +31,7 @@ import org.bukkit.util.BoundingBox;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Game {
   private final GameSetting setting;
@@ -464,7 +465,7 @@ public class Game {
         continue;
       }
       var container = meta.getPersistentDataContainer();
-      var sessionId = container.get(NamespacedKey.minecraft(Main.kDeliveryItemSessionIdKey), PersistentDataType.STRING);
+      var sessionId = container.get(NamespacedKey.minecraft(Main.kAreaItemSessionIdKey), PersistentDataType.STRING);
       if (sessionId == null) {
         continue;
       }
@@ -756,12 +757,35 @@ public class Game {
     var server = Bukkit.getServer();
     server.sendMessage(Component.text("-".repeat(23)));
     server.sendMessage(Component.text("[結果発表]"));
-    //TODO: player_head を装備しているかどうか確認する
-    setting.thieves.forEach(p -> {
-      server.sendMessage(Component.text(String.format("%sが逃げ切った！", p.getName())).color(NamedTextColor.YELLOW));
+    var numEscaped = new AtomicInteger(0);
+    thieves.forEach(p -> {
+      var ok = false;
+      var inventory = p.player.getInventory();
+      var helmet = inventory.getHelmet();
+      if (helmet != null && helmet.getType() == Material.PLAYER_HEAD) {
+        var meta = helmet.getItemMeta();
+        if (meta != null) {
+          var container = meta.getPersistentDataContainer();
+          var sessionId = container.get(NamespacedKey.minecraft(Main.kAreaItemSessionIdKey), PersistentDataType.STRING);
+          if (sessionId != null && sessionId.equals(this.sessionId.toString())) {
+            ok = true;
+          }
+        }
+      }
+      if (ok) {
+        server.sendMessage(p.player.teamDisplayName().append(Component.text("が逃げ切った！")));
+        numEscaped.incrementAndGet();
+      } else {
+        //NOTE: 本物はここのメッセージどうなっているのか?
+        server.sendMessage(p.player.teamDisplayName().append(Component.text("が逃げ切った。しかし「holoXerの頭」を装備していなかった...")));
+      }
     });
     server.sendMessage(Component.empty());
-    server.sendMessage(Component.text("ドロボウの勝利！"));
+    if (numEscaped.get() > 0) {
+      server.sendMessage(Component.text("ドロボウの勝利！"));
+    } else {
+      server.sendMessage(Component.text("ケイサツの勝利！"));
+    }
     server.sendMessage(Component.text("-".repeat(23)));
 
     terminate();

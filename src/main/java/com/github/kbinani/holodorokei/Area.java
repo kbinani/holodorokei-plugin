@@ -91,12 +91,18 @@ public abstract class Area {
           meta.displayName(Component.text(deliveryItem.text));
           meta.lore(List.of(Component.text("全4エリアのアイテムを全て納品すると...？")));
           var container = meta.getPersistentDataContainer();
-          container.set(NamespacedKey.minecraft(Main.kDeliveryItemSessionIdKey), PersistentDataType.STRING, sessionId.toString());
+          container.set(NamespacedKey.minecraft(Main.kAreaItemSessionIdKey), PersistentDataType.STRING, sessionId.toString());
           item.setItemMeta(meta);
         }
         inventory.setItem(13, item);
       } else {
         var holoXerHead = CreateHoloXerHead();
+        var meta = holoXerHead.getItemMeta();
+        if (meta != null) {
+          var container = meta.getPersistentDataContainer();
+          container.set(NamespacedKey.minecraft(Main.kAreaItemSessionIdKey), PersistentDataType.STRING, sessionId.toString());
+          holoXerHead.setItemMeta(meta);
+        }
         inventory.setItem(13, holoXerHead);
       }
     }

@@ -320,7 +320,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
   private final Point3i kButtonLeave = new Point3i(5, -63, -14);
 
   public static final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
-  public static final String kDeliveryItemSessionIdKey = "holodorokei_session_id";
+  public static final String kAreaItemSessionIdKey = "holodorokei_session_id";
 
   @Override
   public void mainDelegateDidFinishGame() {
