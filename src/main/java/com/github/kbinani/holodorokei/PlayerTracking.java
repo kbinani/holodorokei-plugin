@@ -106,6 +106,9 @@ public class PlayerTracking {
     restartActionBarUpdateTimer();
     if (skill.target() == EffectTarget.SELF) {
       if (skill.type() == SkillType.INVULNERABLE) {
+        var effect = new PotionEffect(PotionEffectType.HEAL, skill.effectiveTicks(), 1);
+        player.addPotionEffect(effect);
+
         if (invulnerableTimeoutTimer != null) {
           invulnerableTimeoutTimer.cancel();
         }
