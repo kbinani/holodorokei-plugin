@@ -24,6 +24,7 @@ public class PlayerTracking {
   private final @Nonnull MainDelegate delegate;
   private @Nullable BukkitTask actionBarUpdateTimer;
   private @Nullable BukkitTask invulnerableTimeoutTimer;
+  private long resurrectionTimeoutMillis;
 
   static Random sRandom = null;
 
@@ -162,9 +163,14 @@ public class PlayerTracking {
     player.addPotionEffect(effect);
   }
 
-  @Nullable
-  SkillType getActiveSkillType() {
-    return activeSkillType;
+  boolean isInvulnerable() {
+    if (activeSkillType != null && activeSkillType == SkillType.INVULNERABLE) {
+      return true;
+    }
+    if (System.currentTimeMillis() < resurrectionTimeoutMillis) {
+      return true;
+    }
+    return false;
   }
 
   void depriveSkill() {
@@ -184,6 +190,7 @@ public class PlayerTracking {
     }
     skillCoolDownMillis = 0;
     skill = null;
+    resurrectionTimeoutMillis = 0;
     updateActionBar();
   }
 
@@ -193,6 +200,7 @@ public class PlayerTracking {
     if (role == Role.RESEARCHER) {
       selectSkill();
     }
+    updateActionBar();
   }
 
   private int getRandomInt(int bound) {
@@ -265,5 +273,9 @@ public class PlayerTracking {
 
   private void removeDefaultPotionEffect() {
     player.removePotionEffect(PotionEffectType.SATURATION);
+  }
+
+  void addInvulnerableByResurrection(int seconds) {
+    resurrectionTimeoutMillis = System.currentTimeMillis() + (long) seconds * 1000;
   }
 }

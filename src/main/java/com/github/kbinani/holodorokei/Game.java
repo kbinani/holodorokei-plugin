@@ -485,8 +485,7 @@ public class Game {
   }
 
   private void thiefHitByZombie(PlayerTracking thief, Zombie zombie, EntityDamageByEntityEvent e) {
-    var skill = thief.getActiveSkillType();
-    if (skill == SkillType.INVULNERABLE) {
+    if (thief.isInvulnerable()) {
       e.setDamage(0);
       return;
     }
@@ -496,8 +495,7 @@ public class Game {
   }
 
   private void thiefHitByCop(PlayerTracking thief, PlayerTracking cop, EntityDamageByEntityEvent e) {
-    var skill = thief.getActiveSkillType();
-    if (skill == SkillType.INVULNERABLE) {
+    if (thief.isInvulnerable()) {
       e.setDamage(0);
       return;
     }
@@ -547,6 +545,8 @@ public class Game {
     thief.player.teleport(new Location(world, p.x, p.y, p.z));
     Teams.Instance().prisoner.removePlayer(prisoner.player);
     Teams.Instance().thief.addPlayer(prisoner.player);
+    prisoner.addInvulnerableByResurrection(setting.resurrectCoolDownSeconds);
+    thief.addInvulnerableByResurrection(setting.resurrectCoolDownSeconds);
 
     var server = Bukkit.getServer();
     var component = prisoner.player.teamDisplayName().append(Component.text("が逃げ出した！").color(NamedTextColor.WHITE));
