@@ -64,7 +64,6 @@ public class Game {
   private @Nonnull
   final MainDelegate delegate;
   private final UUID sessionId;
-  private final Map<AreaType, BukkitTask> areaShutoutTimers = new HashMap<>();
 
   private AreaMissionStatus[] areaMissions = new AreaMissionStatus[]{};
   private final Map<AreaType, Boolean> deliveryMissions;
@@ -341,10 +340,6 @@ public class Game {
       t.player.getInventory().clear();
       t.cleanup();
     }
-    for (var timer : areaShutoutTimers.values()) {
-      timer.cancel();
-    }
-    areaShutoutTimers.clear();
   }
 
   void onPlayerInteract(PlayerInteractEvent e) {
@@ -828,16 +823,10 @@ public class Game {
       missionBossBar.cleanup();
       missionBossBar = null;
     }
-
-    areaShutoutTimers.put(type, server.getScheduler().runTaskLater(delegate.mainDelegateGetOwner(), () -> shutoutArea(type), 10 * 20));
-  }
-
-  private void shutoutArea(AreaType type) {
-    areaShutoutTimers.remove(type);
     for (var area : areas) {
       if (area.type() == type) {
-        area.shutout();
-        return;
+        area.scheduleShutout();
+        break;
       }
     }
   }

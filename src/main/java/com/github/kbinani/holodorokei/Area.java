@@ -39,6 +39,7 @@ public abstract class Area {
   private static @Nullable ItemStack sPlayerHead;
   private @Nullable BukkitTask beaconRespawnTimer;
   private final @Nonnull MainDelegate delegate;
+  private @Nullable BukkitTask shutoutTimer;
 
   abstract ChestPosition[] chestPositionList();
 
@@ -153,6 +154,10 @@ public abstract class Area {
       beaconRespawnTimer.cancel();
       beaconRespawnTimer = null;
     }
+    if (shutoutTimer != null) {
+      shutoutTimer.cancel();
+      shutoutTimer = null;
+    }
   }
 
   void startMission() {
@@ -199,7 +204,18 @@ public abstract class Area {
     return cleared;
   }
 
-  void shutout() {
+  void scheduleShutout() {
+    if (shutoutTimer != null) {
+      shutoutTimer.cancel();
+    }
+    shutoutTimer = Bukkit.getScheduler().runTaskLater(delegate.mainDelegateGetOwner(), this::shutout, 10 * 20);
+    if (beaconRespawnTimer != null) {
+      beaconRespawnTimer.cancel();
+      beaconRespawnTimer = null;
+    }
+  }
+
+  private void shutout() {
     for (var wall : shutoutWalls()) {
       Editor.Fill(world, wall.from, wall.to, "quartz_bricks");
     }
@@ -214,10 +230,6 @@ public abstract class Area {
     if (mission != null) {
       mission.cleanup(world);
       missionFinished = true;
-    }
-    if (beaconRespawnTimer != null) {
-      beaconRespawnTimer.cancel();
-      beaconRespawnTimer = null;
     }
   }
 
