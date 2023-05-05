@@ -38,7 +38,7 @@ public abstract class Area {
   boolean missionFinished = false;
   private static @Nullable ItemStack sPlayerHead;
   private @Nullable BukkitTask beaconRespawnTimer;
-  private final @Nonnull MainDelegate delegate;
+  private final @Nonnull Scheduler scheduler;
   private @Nullable BukkitTask shutoutTimer;
 
   abstract ChestPosition[] chestPositionList();
@@ -63,9 +63,9 @@ public abstract class Area {
 
   abstract BoundingBox bounds();
 
-  Area(World world, MainDelegate delegate) {
+  Area(World world, Scheduler scheduler) {
     this.world = world;
-    this.delegate = delegate;
+    this.scheduler = scheduler;
   }
 
   private static @Nonnull ItemStack CreateHoloXerHead() {
@@ -129,7 +129,7 @@ public abstract class Area {
     //  - https://youtu.be/Jv8CKtDfvAM?t=2432
     //  - https://youtu.be/Jv8CKtDfvAM?t=2731
     var interval = 5 * 60 * 20;
-    beaconRespawnTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::spawnBeacons, 0, interval);
+    beaconRespawnTimer = scheduler.runTaskTimer(this::spawnBeacons, 0, interval);
   }
 
   void cleanup() {
@@ -208,7 +208,7 @@ public abstract class Area {
     if (shutoutTimer != null) {
       shutoutTimer.cancel();
     }
-    shutoutTimer = Bukkit.getScheduler().runTaskLater(delegate.mainDelegateGetOwner(), this::shutout, 10 * 20);
+    shutoutTimer = scheduler.runTaskLater(this::shutout, 10 * 20);
     if (beaconRespawnTimer != null) {
       beaconRespawnTimer.cancel();
       beaconRespawnTimer = null;

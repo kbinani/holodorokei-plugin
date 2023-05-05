@@ -71,8 +71,8 @@ public class DododoTown extends Area {
     }
   }
 
-  DododoTown(World world, MainDelegate delegate) {
-    super(world, delegate);
+  DododoTown(World world, Scheduler scheduler) {
+    super(world, scheduler);
   }
 
   @Override

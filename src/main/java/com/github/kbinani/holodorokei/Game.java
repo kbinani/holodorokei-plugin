@@ -62,20 +62,20 @@ public class Game {
   private long resurrectionCoolDownMillis;
   private @Nullable BukkitTask resurrectionCoolDownTimer;
   private @Nullable BukkitTask resurrectionMainBarUpdateTimer;
-  private @Nonnull
-  final MainDelegate delegate;
+  private final @Nonnull GameDelegate delegate;
+  private final Scheduler scheduler;
   private final UUID sessionId;
 
   private AreaMissionStatus[] areaMissions = new AreaMissionStatus[]{};
   private final Map<AreaType, Boolean> deliveryMissions;
 
-  Game(@Nonnull MainDelegate delegate, World world, GameSetting setting) {
+  Game(@Nonnull GameDelegate delegate, Scheduler scheduler, World world, GameSetting setting) {
     this.world = world;
     this.setting = setting;
-    this.soraStation = new SoraStation(world, delegate);
-    this.sikeMura = new SikeMura(world, delegate);
-    this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world, delegate);
-    this.dododoTown = new DododoTown(world, delegate);
+    this.soraStation = new SoraStation(world, scheduler);
+    this.sikeMura = new SikeMura(world, scheduler);
+    this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world, scheduler);
+    this.dododoTown = new DododoTown(world, scheduler);
     this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
     this.deliveryMissions = new HashMap<>();
     Arrays.stream(AreaType.values()).forEach(type -> {
@@ -84,6 +84,7 @@ public class Game {
     this.board = new ProgressBoardSet();
     this.duration = setting.duration;
     this.delegate = delegate;
+    this.scheduler = scheduler;
     this.sessionId = UUID.randomUUID();
 
     record Entry(AreaType type, int minutes) {
@@ -102,11 +103,11 @@ public class Game {
     this.areaMissions = areaMissions.stream().map(Entry::toStatus).toList().toArray(new AreaMissionStatus[]{});
 
     for (var p : setting.thieves) {
-      thieves.add(new PlayerTracking(p, Role.THIEF, delegate));
+      thieves.add(new PlayerTracking(p, Role.THIEF, scheduler));
     }
-    femaleExecutive = setting.femaleExecutive == null ? null : new PlayerTracking(setting.femaleExecutive, Role.FEMALE_EXECUTIVE, delegate);
-    researcher = setting.researcher == null ? null : new PlayerTracking(setting.researcher, Role.RESEARCHER, delegate);
-    cleaner = setting.cleaner == null ? null : new PlayerTracking(setting.cleaner, Role.CLEANER, delegate);
+    femaleExecutive = setting.femaleExecutive == null ? null : new PlayerTracking(setting.femaleExecutive, Role.FEMALE_EXECUTIVE, scheduler);
+    researcher = setting.researcher == null ? null : new PlayerTracking(setting.researcher, Role.RESEARCHER, scheduler);
+    cleaner = setting.cleaner == null ? null : new PlayerTracking(setting.cleaner, Role.CLEANER, scheduler);
     var cops = new ArrayList<PlayerTracking>();
     if (femaleExecutive != null) {
       cops.add(femaleExecutive);
@@ -135,13 +136,11 @@ public class Game {
     }
     board.update(this);
 
-    var server = Bukkit.getServer();
-    var scheduler = server.getScheduler();
     for (var entry : setting.areaMissionSchedule.entrySet()) {
       long waitMinutes = duration - entry.getValue();
       final var type = entry.getKey();
       if (waitMinutes > 0) {
-        var task = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), () -> {
+        var task = scheduler.runTaskLater(() -> {
           startAreaMission(type);
         }, 20 * 60 * waitMinutes);
         areaMissionStarterTasks.put(type, task);
@@ -149,7 +148,7 @@ public class Game {
     }
 
     startMillis = System.currentTimeMillis();
-    gameTimeoutTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), this::timeoutGame, 20 * 60 * duration);
+    gameTimeoutTimer = scheduler.runTaskLater(this::timeoutGame, 20 * 60 * duration);
 
     mainBossBar = new Bar(world, Main.field);
     mainBossBar.progress(1);
@@ -157,7 +156,7 @@ public class Game {
     mainBossBar.name(getMainBossBarComponent());
     mainBossBar.update();
 
-    bossBarsUpdateTimer = scheduler.runTaskTimer(delegate.mainDelegateGetOwner(), this::updateBossBars, 20, 20);
+    bossBarsUpdateTimer = scheduler.runTaskTimer(this::updateBossBars, 20, 20);
 
     thieves.forEach(p -> {
       giveThieveItems(p);
@@ -571,7 +570,7 @@ public class Game {
       server.sendMessage(Component.empty());
 
       terminate();
-      delegate.mainDelegateDidFinishGame();
+      delegate.gameDidFinish();
     }
   }
 
@@ -600,16 +599,15 @@ public class Game {
     var component = prisoner.player.teamDisplayName().append(Component.text("が逃げ出した！").color(NamedTextColor.WHITE));
     server.sendMessage(component);
 
-    var scheduler = server.getScheduler();
     resurrectionCoolDownMillis = System.currentTimeMillis() + (long) setting.resurrectCoolDownSeconds * 1000;
     if (resurrectionCoolDownTimer != null) {
       resurrectionCoolDownTimer.cancel();
     }
-    resurrectionCoolDownTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), this::onCoolDownResurrection, (long) setting.resurrectCoolDownSeconds * 20);
+    resurrectionCoolDownTimer = scheduler.runTaskLater(this::onCoolDownResurrection, (long) setting.resurrectCoolDownSeconds * 20);
     if (resurrectionMainBarUpdateTimer != null) {
       resurrectionMainBarUpdateTimer.cancel();
     }
-    resurrectionMainBarUpdateTimer = scheduler.runTaskTimer(delegate.mainDelegateGetOwner(), this::updateBossBars, 0, 20);
+    resurrectionMainBarUpdateTimer = scheduler.runTaskTimer(this::updateBossBars, 0, 20);
 
     board.update(this);
   }
@@ -733,9 +731,7 @@ public class Game {
         break;
       }
     }
-    var server = Bukkit.getServer();
-    var scheduler = server.getScheduler();
-    areaMissionTimeoutTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), () -> abortAreaMission(type), 20 * 60 * 3);
+    areaMissionTimeoutTimer = scheduler.runTaskLater(() -> abortAreaMission(type), 20 * 60 * 3);
     var notified = new HashSet<Player>();
     thieves.forEach(p -> {
       sendMissionStartMessage(p.player, type.description());
@@ -891,7 +887,7 @@ public class Game {
     server.sendMessage(Component.empty());
 
     terminate();
-    delegate.mainDelegateDidFinishGame();
+    delegate.gameDidFinish();
   }
 
   private void updateBossBars() {

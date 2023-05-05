@@ -184,8 +184,8 @@ public class SoraStation extends Area {
     }
   }
 
-  SoraStation(World world, MainDelegate delegate) {
-    super(world, delegate);
+  SoraStation(World world, Scheduler scheduler) {
+    super(world, scheduler);
   }
 
   @Override

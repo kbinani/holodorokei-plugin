@@ -29,11 +29,12 @@ import org.bukkit.util.BoundingBox;
 import java.util.Optional;
 import java.util.logging.Level;
 
-public class Main extends JavaPlugin implements Listener, MainDelegate {
+public class Main extends JavaPlugin implements Listener, GameDelegate {
   private World world;
   private boolean initialized = false;
   private Game game;
   private GameSetting setting = new GameSetting();
+  private final Scheduler scheduler = new Scheduler(this);
 
   @Override
   public void onEnable() {
@@ -313,7 +314,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
       server.sendMessage(Component.text(String.format("ゲームを開始できません。理由: %s", reason)).color(NamedTextColor.RED));
       return;
     }
-    game = new Game(this, world, setting);
+    game = new Game(this, scheduler, world, setting);
     this.setting = new GameSetting();
     server.sendMessage(Component.empty());
     server.sendMessage(Component.text(String.format("ゲームを開始します！（ドロボウ：%d人、ケイサツ：%d人）", game.getNumThieves(), game.getNumCops())));
@@ -349,12 +350,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
   public static final String kAreaItemSessionIdKey = "holodorokei_session_id";
 
   @Override
-  public void mainDelegateDidFinishGame() {
+  public void gameDidFinish() {
     this.game = null;
-  }
-
-  @Override
-  public JavaPlugin mainDelegateGetOwner() {
-    return this;
   }
 }

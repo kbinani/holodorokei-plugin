@@ -2,7 +2,6 @@ package com.github.kbinani.holodorokei;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -21,7 +20,7 @@ public class PlayerTracking {
   private @Nullable SkillType activeSkillType;
   private long skillCoolDownMillis;
   private @Nullable BukkitTask coolDownTimer;
-  private final @Nonnull MainDelegate delegate;
+  private final @Nonnull Scheduler scheduler;
   private @Nullable BukkitTask actionBarUpdateTimer;
   private @Nullable BukkitTask invulnerableTimeoutTimer;
   private long resurrectionTimeoutMillis;
@@ -29,10 +28,10 @@ public class PlayerTracking {
 
   static Random sRandom = null;
 
-  PlayerTracking(Player player, Role role, @Nonnull MainDelegate delegate) {
+  PlayerTracking(Player player, Role role, @Nonnull Scheduler scheduler) {
     this.player = player;
     this.role = role;
-    this.delegate = delegate;
+    this.scheduler = scheduler;
   }
 
   void selectSkill() {
@@ -107,8 +106,7 @@ public class PlayerTracking {
     }
     message = message.append(Component.text(" を発動！").color(NamedTextColor.WHITE));
     player.sendMessage(message);
-    var scheduler = Bukkit.getScheduler();
-    coolDownTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), this::onCoolDown, skill.cooldownTicks());
+    coolDownTimer = scheduler.runTaskLater(this::onCoolDown, skill.cooldownTicks());
     restartActionBarUpdateTimer();
     if (skill.target() == EffectTarget.SELF) {
       if (skill.type() == SkillType.INVULNERABLE) {
@@ -117,7 +115,7 @@ public class PlayerTracking {
         if (invulnerableTimeoutTimer != null) {
           invulnerableTimeoutTimer.cancel();
         }
-        invulnerableTimeoutTimer = scheduler.runTaskLater(delegate.mainDelegateGetOwner(), () -> {
+        invulnerableTimeoutTimer = scheduler.runTaskLater(() -> {
           activeSkillType = null;
           updateActionBar();
         }, skill.effectiveTicks());
@@ -252,13 +250,13 @@ public class PlayerTracking {
       actionBarUpdateTimer.cancel();
     }
     updateActionBar();
-    actionBarUpdateTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::updateActionBar, 20, 20);
+    actionBarUpdateTimer = scheduler.runTaskTimer(this::updateActionBar, 20, 20);
   }
 
   void start(int durationMinutes) {
     updateActionBar();
     addDefaultPotionEffect(durationMinutes);
-    actionBarUpdateTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::updateActionBar, 20, 20);
+    actionBarUpdateTimer = scheduler.runTaskTimer(this::updateActionBar, 20, 20);
   }
 
   void cleanup() {
