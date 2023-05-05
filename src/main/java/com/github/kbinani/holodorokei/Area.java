@@ -119,7 +119,12 @@ public abstract class Area {
         inventory.setItem(13, holoXerHead);
       }
     }
+
+    for (var wall : shutoutWalls()) {
+      Editor.Fill(world, wall.from, wall.to, "air");
+    }
     spawnBeacons();
+
     mission = initializeMission(world);
     if (mission != null) {
       mission.cleanup(world);
