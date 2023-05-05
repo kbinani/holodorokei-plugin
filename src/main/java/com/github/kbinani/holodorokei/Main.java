@@ -21,7 +21,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.PluginManager;
@@ -176,20 +175,6 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       return;
     }
     game.onEntityMove(e);
-  }
-
-  @EventHandler
-  public void onEntityDamage(EntityDamageEvent e) {
-    if (e.getCause() != EntityDamageEvent.DamageCause.FALL) {
-      return;
-    }
-    if (!(e.getEntity() instanceof Player player)) {
-      return;
-    }
-    if (player.getWorld() != world) {
-      return;
-    }
-    e.setCancelled(true);
   }
 
   @EventHandler
