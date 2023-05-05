@@ -130,7 +130,7 @@ public class DododoTown extends Area {
   @Override
   Wall[] shutoutWalls() {
     return new Wall[]{
-      new Wall(new Point3i(-22, -59, 17), new Point3i(-22, -43, 137)),
+      new Wall(new Point3i(-22, -59, 18), new Point3i(-22, -43, 137)),
       new Wall(new Point3i(-23, -59, 17), new Point3i(-140, -43, 17)),
     };
   }
