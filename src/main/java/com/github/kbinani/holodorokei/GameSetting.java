@@ -20,7 +20,7 @@ public class GameSetting {
   final Map<AreaType, Integer> areaMissionSchedule = new HashMap<>();
   int duration = 20;
   int resurrectCoolDownSeconds = 10;
-  int invulnerableSecondsAfterResurrection = 9;
+  int invulnerableSecondsAfterResurrection = 5;
   boolean enableKatsumokuSeyo = false;
 
   void reset() {
@@ -165,6 +165,7 @@ public class GameSetting {
     areaMissionSchedule.put(type, 4);
     duration = 5;
     enableKatsumokuSeyo = false;
+    invulnerableSecondsAfterResurrection = 9;
   }
 
   void scheduleRegularAreaMissionRandomly() {
@@ -176,6 +177,7 @@ public class GameSetting {
     }
     duration = 20;
     enableKatsumokuSeyo = true;
+    invulnerableSecondsAfterResurrection = 5;
   }
 
   //NOTE: null ならスタート可, nonnull ならスタートできない理由
