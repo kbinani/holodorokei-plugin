@@ -19,6 +19,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
@@ -678,6 +679,19 @@ public class Game {
     }
   }
 
+  void onPlayerMove(PlayerMoveEvent e) {
+    var prisoner = findPrisonerPlayer(e.getPlayer());
+    if (prisoner == null) {
+      return;
+    }
+    var location = prisoner.player.getLocation();
+    if (!kPrisonBounds.contains(location.toVector())) {
+      world.spawnParticle(Particle.SPELL_WITCH, location, 10);
+      location.set(kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z);
+      prisoner.player.teleport(location);
+    }
+  }
+
   AreaMissionStatus[] getAreaMissions() {
     return this.areaMissions;
   }
@@ -889,4 +903,5 @@ public class Game {
   private final String kItemTag = "holodorokei_item";
   private final Point3i kPrisonCenter = new Point3i(-5, -54, 1);
   private final Point3i kEscapeLocation = new Point3i(12, -60, 1);
+  private final BoundingBox kPrisonBounds = new BoundingBox(-10.5, -54.5, -4.5, 0.5, -48, 6.5);
 }

@@ -17,10 +17,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
@@ -224,6 +221,14 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
       return;
     }
     game.onInventoryMoveItem(e);
+  }
+
+  @EventHandler
+  public void onPlayerMove(PlayerMoveEvent e) {
+    if (game == null) {
+      return;
+    }
+    game.onPlayerMove(e);
   }
 
   private void setup() {
