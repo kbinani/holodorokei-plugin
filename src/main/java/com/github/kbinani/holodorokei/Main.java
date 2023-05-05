@@ -51,7 +51,6 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
   }
 
   @EventHandler
-  @SuppressWarnings("unused")
   public void onCreatureSpawn(CreatureSpawnEvent e) {
     if (e.isCancelled()) {
       return;
@@ -60,14 +59,7 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       return;
     }
     switch (e.getSpawnReason()) {
-      case NATURAL:
-      case VILLAGE_INVASION:
-      case BUILD_WITHER:
-      case BUILD_IRONGOLEM:
-      case BUILD_SNOWMAN:
-      case SPAWNER:
-        e.setCancelled(true);
-        break;
+      case NATURAL, VILLAGE_INVASION, BUILD_WITHER, BUILD_IRONGOLEM, BUILD_SNOWMAN, SPAWNER -> e.setCancelled(true);
     }
   }
 
@@ -80,10 +72,9 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
   }
 
   @EventHandler
-  @SuppressWarnings("unused")
   public void onPlayerInteract(PlayerInteractEvent e) {
     Player player = e.getPlayer();
-    if (!player.getWorld().getUID().equals(world.getUID())) {
+    if (player.getWorld() != world) {
       return;
     }
     if (game != null) {
@@ -163,7 +154,7 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       return;
     }
     var entity = e.getEntity();
-    if (!entity.getWorld().getUID().equals(world.getUID())) {
+    if (entity.getWorld() != world) {
       return;
     }
     game.onEntityMove(e);
@@ -177,12 +168,18 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (!(e.getEntity() instanceof Player player)) {
       return;
     }
+    if (player.getWorld() != world) {
+      return;
+    }
     e.setCancelled(true);
   }
 
   @EventHandler
   public void onPlayerToggleSneak(PlayerToggleSneakEvent e) {
     if (game == null) {
+      return;
+    }
+    if (e.getPlayer().getWorld() != world) {
       return;
     }
     game.onPlayerToggleSneak(e);
@@ -193,12 +190,18 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (game == null) {
       return;
     }
+    if (e.getPlayer().getWorld() != world) {
+      return;
+    }
     game.onBlockBreak(e);
   }
 
   @EventHandler
   public void onBlockDropItem(BlockDropItemEvent e) {
     if (game == null) {
+      return;
+    }
+    if (e.getPlayer().getWorld() != world) {
       return;
     }
     game.onBlockDropItem(e);
@@ -209,12 +212,18 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (game == null) {
       return;
     }
+    if (e.getPlayer().getWorld() != world) {
+      return;
+    }
     game.onPlayerItemDamage(e);
   }
 
   @EventHandler
   public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
     if (game == null) {
+      return;
+    }
+    if (e.getEntity().getWorld() != world) {
       return;
     }
     game.onEntityDamageByEntity(e);
@@ -225,12 +234,22 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (game == null) {
       return;
     }
+    var location = e.getDestination().getLocation();
+    if (location == null) {
+      return;
+    }
+    if (location.getWorld() != world) {
+      return;
+    }
     game.onInventoryMoveItem(e);
   }
 
   @EventHandler
   public void onPlayerMove(PlayerMoveEvent e) {
     if (game == null) {
+      return;
+    }
+    if (e.getPlayer().getWorld() != world) {
       return;
     }
     game.onPlayerMove(e);
