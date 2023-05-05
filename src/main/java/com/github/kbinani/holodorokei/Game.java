@@ -638,7 +638,7 @@ public class Game {
         }
         ensurePotionEffects(tracking);
         giveCopItems(tracking);
-        if (System.currentTimeMillis() < startMillis + 60 * 1000) {
+        if (System.currentTimeMillis() < startMillis + (long) setting.copInitialDelaySeconds * 1000) {
           var location = player.getLocation();
           if (!kPrisonBounds.contains(location.toVector())) {
             teleportToPrisonCenter(player);
@@ -666,7 +666,7 @@ public class Game {
         }
         ensurePotionEffects(tracking);
         giveThieveItems(tracking);
-        if (System.currentTimeMillis() >= startMillis + 60 * 1000) {
+        if (System.currentTimeMillis() >= startMillis + (long) setting.copInitialDelaySeconds * 1000) {
           var location = player.getLocation();
           if (!kPrisonBounds.contains(location.toVector())) {
             teleportToPrisonCenter(player);
@@ -874,7 +874,7 @@ public class Game {
 
   void onPlayerMove(PlayerMoveEvent e) {
     Player player = null;
-    if (System.currentTimeMillis() < startMillis + 60 * 1000) {
+    if (System.currentTimeMillis() < startMillis + (long) setting.copInitialDelaySeconds * 1000) {
       var cop = findCopPlayer(e.getPlayer());
       if (cop == null) {
         return;
