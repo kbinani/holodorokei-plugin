@@ -5,6 +5,7 @@ import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.DyeColor;
+import org.bukkit.GameRule;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -27,8 +28,11 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 
+import java.io.FileInputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.logging.Level;
 
 public class Main extends JavaPlugin implements Listener, GameDelegate {
@@ -40,13 +44,25 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
 
   @Override
   public void onEnable() {
+    var logger = getLogger();
     Optional<World> overworld = getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
     if (overworld.isEmpty()) {
-      getLogger().log(Level.SEVERE, "server should have at least one overworld dimension");
+      logger.log(Level.SEVERE, "server should have at least one overworld dimension");
       setEnabled(false);
       return;
     }
     world = overworld.get();
+
+    var reasons = lookupInvalidServerConfigs();
+    if (reasons.length > 0) {
+      logger.log(Level.SEVERE, "以下の理由でこのプラグインを有効化できませんでした。設定を見直してください:");
+      for (int i = 0; i < reasons.length; i++) {
+        var reason = reasons[i];
+        logger.log(Level.SEVERE, String.format("  %d. %s", i + 1, reason));
+      }
+      setEnabled(false);
+      return;
+    }
 
     PluginManager pluginManager = getServer().getPluginManager();
     pluginManager.registerEvents(this, this);
@@ -361,6 +377,54 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     }, 20);
   }
 
+  @Override
+  public void gameDidFinish() {
+    this.game = null;
+  }
+
+  private String[] lookupInvalidServerConfigs() {
+    var reasons = new ArrayList<String>();
+    if (Boolean.FALSE.equals(world.getGameRuleValue(GameRule.KEEP_INVENTORY))) {
+      reasons.add("gamerule keepInventory が false になっています。true に設定して下さい");
+    }
+    if (Boolean.FALSE.equals(world.getGameRuleValue(GameRule.DO_IMMEDIATE_RESPAWN))) {
+      reasons.add("gamerule doImmediateRespawn が false になっています。true に設定して下さい");
+    }
+    if (Boolean.TRUE.equals(world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES))) {
+      reasons.add("gamerule showDeathMessages が true になっています。false に設定して下さい");
+    }
+    if (Boolean.TRUE.equals(world.getGameRuleValue(GameRule.FALL_DAMAGE))) {
+      reasons.add("gamerule fallDamage が true になっています。false に設定して下さい");
+    }
+    if (!world.getPVP()) {
+      reasons.add("pvp が無効化されています。有効にして下さい");
+    }
+    var spigot = getServer().spigot();
+    var paper = spigot.getPaperConfig();
+    if ("true".equals(paper.get("__________WORLDS__________.__defaults__.hopper.disable-move-event"))) {
+      reasons.add("paper の設定項目 hopper.disable-move-event が true になっているため納品ミッションが動作しません。false に設定して下さい");
+    }
+    if ("false".equals(paper.get("__________WORLDS__________.__defaults__.scoreboards.allow-non-player-entities-on-scoreboards"))) {
+      reasons.add("paper の設定項目 scoreboards.allow-non-player-entities-on-scoreboards が false になっているためしけ村エリアミッションが動作しません。true に設定して下さい");
+    }
+    try {
+      var props = new Properties();
+      props.load(new FileInputStream("server.properties"));
+      var spawnProtection = props.getProperty("spawn-protection");
+      if (spawnProtection == null) {
+        reasons.add("server.properties の spawn-protection が未設定です。スポーン地点付近のアドベンチャーモードのプレイヤーがホロ杖を使えるようにするために spawn-protection=-1 に設定して下さい");
+      } else {
+        int distance = Integer.parseInt(spawnProtection);
+        if (distance > 0) {
+          reasons.add("server.properties の spawn-protection が不正です。スポーン地点付近のアドベンチャーモードのプレイヤーがホロ杖を使えるようにするために spawn-protection=-1 に設定して下さい");
+        }
+      }
+    } catch (Throwable e) {
+      reasons.add("server.properties が読み込めません");
+    }
+    return reasons.toArray(new String[0]);
+  }
+
   private final Point3i kButtonEntryThief = new Point3i(-15, -62, -14);
   private final Point3i kButtonEntryCopFemaleExecutive = new Point3i(-16, -62, -14);
   private final Point3i kButtonEntryCopResearcher = new Point3i(-17, -62, -14);
@@ -381,9 +445,4 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
 
   public static final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
   public static final String kAreaItemSessionIdKey = "holodorokei_session_id";
-
-  @Override
-  public void gameDidFinish() {
-    this.game = null;
-  }
 }
