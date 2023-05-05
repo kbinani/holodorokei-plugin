@@ -29,11 +29,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Game {
   public @Nullable WeakReference<GameDelegate> delegate;
@@ -684,10 +684,15 @@ public class Game {
     arrest(thief);
   }
 
+
   private void arrest(PlayerTracking tracking) {
+    var message = tracking.player.teamDisplayName().append(Component.text("が捕まった！").color(NamedTextColor.WHITE));
+    arrestWithMessage(tracking, message);
+  }
+
+  private void arrestWithMessage(PlayerTracking tracking, @Nonnull Component message) {
     var server = Bukkit.getServer();
-    var component = tracking.player.teamDisplayName().append(Component.text("が捕まった！").color(NamedTextColor.WHITE));
-    server.sendMessage(component);
+    server.sendMessage(message);
 
     tracking.player.setBedSpawnLocation(new Location(world, kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z), true);
     tracking.player.setHealth(0);
@@ -711,7 +716,7 @@ public class Game {
       server.sendMessage(Component.empty());
 
       terminate();
-      var delegate = this.delegate.get();
+      var delegate = this.delegate == null ? null : this.delegate.get();
       if (delegate != null) {
         delegate.gameDidFinish();
       }
@@ -1058,11 +1063,7 @@ public class Game {
   }
 
   private void timeoutGame() {
-    var server = Bukkit.getServer();
-    server.sendMessage(Component.text("-".repeat(23)));
-    server.sendMessage(Component.text("[結果発表]"));
-    var numEscaped = new AtomicInteger(0);
-    thieves.forEach(p -> {
+    (new HashSet<>(thieves)).forEach(p -> {
       var ok = false;
       var inventory = p.player.getInventory();
       var helmet = inventory.getHelmet();
@@ -1076,27 +1077,31 @@ public class Game {
           }
         }
       }
-      if (ok) {
-        server.sendMessage(p.player.teamDisplayName().append(Component.text("が逃げ切った！")));
-        numEscaped.incrementAndGet();
-      } else {
-        //NOTE: 本物はここのメッセージどうなっているのか?
-        server.sendMessage(p.player.teamDisplayName().append(Component.text("が逃げ切った。しかし「holoXerの頭」を装備していなかった...")));
+      if (!ok) {
+        var message = Component.text("「holoXerの頭」を装備していなかったため ")
+          .append(p.player.teamDisplayName())
+          .append(Component.text(" が捕まった！").color(NamedTextColor.WHITE));
+        arrestWithMessage(p, message);
       }
     });
-    server.sendMessage(Component.empty());
-    if (numEscaped.get() > 0) {
-      server.sendMessage(Component.text("ドロボウの勝利！"));
-    } else {
-      server.sendMessage(Component.text("ケイサツの勝利！"));
-    }
-    server.sendMessage(Component.text("-".repeat(23)));
-    server.sendMessage(Component.empty());
 
-    terminate();
-    var delegate = this.delegate.get();
-    if (delegate != null) {
-      delegate.gameDidFinish();
+    if (thieves.size() > 0) {
+      var server = Bukkit.getServer();
+      thieves.forEach(p -> {
+        server.sendMessage(p.player.teamDisplayName().append(Component.text("が逃げ切った！")));
+      });
+      server.sendMessage(Component.text("-".repeat(23)));
+      server.sendMessage(Component.text("[結果発表]"));
+      server.sendMessage(Component.empty());
+      server.sendMessage(Component.text("ドロボウの勝利！"));
+      server.sendMessage(Component.text("-".repeat(23)));
+      server.sendMessage(Component.empty());
+
+      terminate();
+      var delegate = this.delegate == null ? null : this.delegate.get();
+      if (delegate != null) {
+        delegate.gameDidFinish();
+      }
     }
   }
 
