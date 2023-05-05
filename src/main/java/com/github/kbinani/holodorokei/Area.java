@@ -127,8 +127,8 @@ public abstract class Area {
     // ビーコンは 5 分に一度湧く:
     //  - https://youtu.be/Jv8CKtDfvAM?t=2432
     //  - https://youtu.be/Jv8CKtDfvAM?t=2731
-    var interval = 55 * 60 * 20;
-    beaconRespawnTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::spawnBeacons, interval, interval);
+    var interval = 5 * 60 * 20;
+    beaconRespawnTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::spawnBeacons, 0, interval);
   }
 
   void cleanup() {
@@ -214,6 +214,10 @@ public abstract class Area {
     if (mission != null) {
       mission.cleanup(world);
       missionFinished = true;
+    }
+    if (beaconRespawnTimer != null) {
+      beaconRespawnTimer.cancel();
+      beaconRespawnTimer = null;
     }
   }
 
