@@ -86,6 +86,9 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       initialized = true;
       getServer().getScheduler().runTaskLater(this, this::setup, 20 * 5);
     }
+    if (game != null && e.getPlayer().getWorld() == world) {
+      game.onPlayerJoin(e);
+    }
   }
 
   @EventHandler

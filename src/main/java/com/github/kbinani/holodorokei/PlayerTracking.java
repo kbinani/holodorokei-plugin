@@ -13,8 +13,7 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 public class PlayerTracking {
-  //TODO: 途中でログアウトしてしまった場合 == で比較できなくなる。ログイン時に差し替える
-  final Player player;
+  Player player;
   final Role role;
   private @Nullable Skill skill;
   private @Nullable SkillType activeSkillType;

@@ -18,10 +18,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -576,6 +573,63 @@ public class Game {
     }
   }
 
+  void onPlayerJoin(PlayerJoinEvent e) {
+    var player = e.getPlayer();
+    var id = player.getUniqueId();
+    for (var tracking : cops) {
+      if (tracking.player.getUniqueId().equals(id)) {
+        tracking.player = player;
+        for (var effect : player.getActivePotionEffects()) {
+          player.removePotionEffect(effect.getType());
+        }
+        ensurePotionEffects(tracking);
+        giveCopItems(tracking);
+        if (System.currentTimeMillis() < startMillis + 60 * 1000) {
+          var location = player.getLocation();
+          if (!kPrisonBounds.contains(location.toVector())) {
+            teleportToPrisonCenter(player);
+          }
+        }
+        return;
+      }
+    }
+    for (var tracking : thieves) {
+      if (tracking.player.getUniqueId().equals(id)) {
+        tracking.player = player;
+        for (var effect : player.getActivePotionEffects()) {
+          player.removePotionEffect(effect.getType());
+        }
+        ensurePotionEffects(tracking);
+        giveThieveItems(tracking);
+        return;
+      }
+    }
+    for (var tracking : prisoners) {
+      if (tracking.player.getUniqueId().equals(id)) {
+        tracking.player = player;
+        for (var effect : player.getActivePotionEffects()) {
+          player.removePotionEffect(effect.getType());
+        }
+        ensurePotionEffects(tracking);
+        giveThieveItems(tracking);
+        if (System.currentTimeMillis() >= startMillis + 60 * 1000) {
+          var location = player.getLocation();
+          if (!kPrisonBounds.contains(location.toVector())) {
+            teleportToPrisonCenter(player);
+          }
+        }
+        return;
+      }
+    }
+    for (var p : setting.managers) {
+      if (p.getUniqueId().equals(id)) {
+        setting.managers.remove(p);
+        setting.managers.add(player);
+        return;
+      }
+    }
+  }
+
   private void thiefDamageByZombie(PlayerTracking thief, Zombie zombie, EntityDamageByEntityEvent e) {
     if (thief.isInvulnerable()) {
       e.setDamage(0);
@@ -790,6 +844,10 @@ public class Game {
     if (tracking == null) {
       return;
     }
+    ensurePotionEffects(tracking);
+  }
+
+  private void ensurePotionEffects(PlayerTracking tracking) {
     var remaining = startMillis + duration * 60 * 1000 - System.currentTimeMillis();
     var durationTicks = (int) Math.ceil(remaining / 1000.0 * 20);
     if (durationTicks > 0) {
