@@ -1,5 +1,6 @@
 package com.github.kbinani.holodorokei;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -254,6 +255,17 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       return;
     }
     game.onPlayerMove(e);
+  }
+
+  @EventHandler
+  public void onPlayerPostRespawn(PlayerPostRespawnEvent e) {
+    if (game == null) {
+      return;
+    }
+    if (e.getPlayer().getWorld() != world) {
+      return;
+    }
+    game.onPlayerPostRespawn(e);
   }
 
   private void setup() {

@@ -1,5 +1,6 @@
 package com.github.kbinani.holodorokei;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
@@ -756,6 +757,17 @@ public class Game {
       player = e.getPlayer();
     }
     teleportToPrisonCenter(player);
+  }
+
+  void onPlayerPostRespawn(PlayerPostRespawnEvent e) {
+    var player = findPlayer(e.getPlayer(), true);
+    if (player != null) {
+      var remaining = startMillis + duration * 60 * 1000 - System.currentTimeMillis();
+      var durationTicks = (int) Math.ceil(remaining / 1000.0 * 20);
+      if (durationTicks > 0) {
+        player.addDefaultPotionEffect(durationTicks);
+      }
+    }
   }
 
   AreaMissionStatus[] getAreaMissions() {

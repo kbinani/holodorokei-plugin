@@ -252,7 +252,7 @@ public class PlayerTracking {
 
   void start(int durationMinutes) {
     updateActionBar();
-    addDefaultPotionEffect(durationMinutes);
+    addDefaultPotionEffect(durationMinutes * 60 * 20);
     actionBarUpdateTimer = scheduler.runTaskTimer(this::updateActionBar, 20, 20);
   }
 
@@ -272,9 +272,11 @@ public class PlayerTracking {
     removeDefaultPotionEffect();
   }
 
-  private void addDefaultPotionEffect(int minutes) {
-    int duration = minutes * 60 * 20;
-    var effect = new PotionEffect(PotionEffectType.SATURATION, duration, 1, false, false);
+  void addDefaultPotionEffect(int durationTicks) {
+    if (durationTicks <= 0) {
+      return;
+    }
+    var effect = new PotionEffect(PotionEffectType.SATURATION, durationTicks, 1, false, false);
     player.addPotionEffect(effect);
   }
 
