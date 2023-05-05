@@ -270,7 +270,9 @@ public class PlayerTracking {
       coolDownTimer.cancel();
       coolDownTimer = null;
     }
-    removeDefaultPotionEffect();
+    for (var effect : player.getActivePotionEffects()) {
+      player.removePotionEffect(effect.getType());
+    }
   }
 
   void addDefaultPotionEffect(int durationTicks) {
@@ -279,10 +281,6 @@ public class PlayerTracking {
     }
     var effect = new PotionEffect(PotionEffectType.SATURATION, durationTicks, 1, false, false);
     player.addPotionEffect(effect);
-  }
-
-  private void removeDefaultPotionEffect() {
-    player.removePotionEffect(PotionEffectType.SATURATION);
   }
 
   private void addInvulnerablePotionEffect(int ticks) {
