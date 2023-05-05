@@ -1108,11 +1108,11 @@ public class Game {
 
     if (thieves.size() > 0) {
       var server = Bukkit.getServer();
+      server.sendMessage(Component.text("-".repeat(23)));
+      server.sendMessage(Component.text("[結果発表]"));
       thieves.forEach(p -> {
         server.sendMessage(p.player.teamDisplayName().append(Component.text("が逃げ切った！")));
       });
-      server.sendMessage(Component.text("-".repeat(23)));
-      server.sendMessage(Component.text("[結果発表]"));
       server.sendMessage(Component.empty());
       server.sendMessage(Component.text("ドロボウの勝利！"));
       server.sendMessage(Component.text("-".repeat(23)));
