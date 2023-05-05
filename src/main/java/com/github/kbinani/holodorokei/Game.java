@@ -11,6 +11,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Sheep;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.Action;
@@ -532,6 +533,10 @@ public class Game {
     // cop => thief: 即死, 牢屋に転送して prisoner に変換
     // thief => ゾンビ: 即死
     // thief => prisoner: 生還
+
+    //NOTE: この仕様は実装されているのか不明だけどあったほうがいいはず.
+    // cop => sheep: 攻撃を無効にする. cop 側が予め羊を殺害しておけばエリアミッションの達成は不可能になるため.
+
     var attacker = e.getDamager();
     var defender = e.getEntity();
     if (attacker instanceof Player playerAttacker) {
@@ -556,6 +561,8 @@ public class Game {
           return;
         }
         thiefDamageByCop(thiefDefender, copAttacker, e);
+      } else if (defender instanceof Sheep) {
+        e.setCancelled(true);
       }
     } else if (attacker instanceof Zombie zombieAttacker && defender instanceof Player playerDefender) {
       var thiefDefender = findThiefPlayer(playerDefender);
