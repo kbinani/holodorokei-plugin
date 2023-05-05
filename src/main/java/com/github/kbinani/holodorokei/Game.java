@@ -65,6 +65,8 @@ public class Game {
   private @Nullable BukkitTask katsumokuSeyoNoticeTimer;
   private @Nullable BukkitTask katsumokuSeyoStartTimer;
   private boolean katsumokuActivated = false;
+  private final Map<PotionEffectType, Long> potionsActiveForCopsUntilMillis = new HashMap<>();
+  private final Map<PotionEffectType, Long> potionsActiveForThievesUntilMillis = new HashMap<>();
 
   private final AreaMissionStatus[] areaMissions;
   private final Map<AreaType, Boolean> deliveryMissions;
@@ -171,8 +173,10 @@ public class Game {
       p.selectSkill();
       p.start((int) duration);
       teleportToPrisonCenter(p.player);
-      var effect = new PotionEffect(PotionEffectType.DARKNESS, 60 * 20, 1);
+      var darknessSeconds = 60;
+      var effect = new PotionEffect(PotionEffectType.DARKNESS, darknessSeconds * 20, 1);
       p.player.addPotionEffect(effect);
+      potionsActiveForCopsUntilMillis.put(PotionEffectType.DARKNESS, System.currentTimeMillis() + darknessSeconds * 1000);
     });
   }
 
@@ -428,7 +432,7 @@ public class Game {
         }
         var result = tracking.tryActivatingSkill(tracking.role == Role.THIEF && canThiefApplyShortCoolDown());
         if (result != null) {
-          applyPotionEffect(result.target(), result.effect());
+          applyPotionEffect(result);
         }
       }
       case SPLASH_POTION -> {
@@ -671,11 +675,33 @@ public class Game {
     }
   }
 
-  private void applyPotionEffect(EffectTarget target, PotionEffect effect) {
-    if (target == EffectTarget.THIEF) {
-      thieves.forEach(t -> t.player.addPotionEffect(effect));
-    } else if (target == EffectTarget.COP) {
-      Arrays.stream(cops).forEach(t -> t.player.addPotionEffect(effect));
+  private void applyPotionEffect(PlayerTracking.SkillActivationResult result) {
+    if (result.target() == EffectTarget.THIEF) {
+      long until = result.activeUntilMillis();
+      var current = potionsActiveForThievesUntilMillis.get(result.effectType());
+      if (current != null) {
+        until = Math.max(until, current);
+      }
+      potionsActiveForThievesUntilMillis.put(result.effectType(), until);
+
+      var ticks = (int) Math.ceil((until - System.currentTimeMillis()) / 1000.0 * 20);
+      if (ticks > 0) {
+        var effect = new PotionEffect(result.effectType(), ticks, 1);
+        thieves.forEach(t -> t.player.addPotionEffect(effect));
+      }
+    } else if (result.target() == EffectTarget.COP) {
+      long until = result.activeUntilMillis();
+      var current = potionsActiveForCopsUntilMillis.get(result.effectType());
+      if (current != null) {
+        until = Math.max(until, current);
+      }
+      potionsActiveForCopsUntilMillis.put(result.effectType(), until);
+
+      var ticks = (int) Math.ceil((until - System.currentTimeMillis()) / 1000.0 * 20);
+      if (ticks > 0) {
+        var effect = new PotionEffect(result.effectType(), ticks, 1);
+        Arrays.stream(cops).forEach(t -> t.player.addPotionEffect(effect));
+      }
     }
   }
 
@@ -760,12 +786,35 @@ public class Game {
   }
 
   void onPlayerPostRespawn(PlayerPostRespawnEvent e) {
-    var player = findPlayer(e.getPlayer(), true);
-    if (player != null) {
-      var remaining = startMillis + duration * 60 * 1000 - System.currentTimeMillis();
-      var durationTicks = (int) Math.ceil(remaining / 1000.0 * 20);
-      if (durationTicks > 0) {
-        player.addDefaultPotionEffect(durationTicks);
+    var tracking = findPlayer(e.getPlayer(), true);
+    if (tracking == null) {
+      return;
+    }
+    var remaining = startMillis + duration * 60 * 1000 - System.currentTimeMillis();
+    var durationTicks = (int) Math.ceil(remaining / 1000.0 * 20);
+    if (durationTicks > 0) {
+      tracking.addDefaultPotionEffect(durationTicks);
+    }
+
+    var now = System.currentTimeMillis();
+    switch (tracking.role) {
+      case THIEF -> {
+        for (var entry : potionsActiveForThievesUntilMillis.entrySet()) {
+          var ticks = (int) Math.ceil((entry.getValue() - now) / 1000.0 * 20);
+          if (ticks > 0) {
+            var effect = new PotionEffect(entry.getKey(), ticks, 1);
+            tracking.player.addPotionEffect(effect);
+          }
+        }
+      }
+      case FEMALE_EXECUTIVE, RESEARCHER, CLEANER -> {
+        for (var entry : potionsActiveForCopsUntilMillis.entrySet()) {
+          var ticks = (int) Math.ceil((entry.getValue() - now) / 1000.0 * 20);
+          if (ticks > 0) {
+            var effect = new PotionEffect(entry.getKey(), ticks, 1);
+            tracking.player.addPotionEffect(effect);
+          }
+        }
       }
     }
   }

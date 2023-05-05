@@ -71,7 +71,7 @@ public class PlayerTracking {
     updateActionBar();
   }
 
-  record SkillActivationResult(EffectTarget target, PotionEffect effect) {
+  record SkillActivationResult(EffectTarget target, PotionEffectType effectType, long activeUntilMillis) {
   }
 
   @Nullable
@@ -106,7 +106,7 @@ public class PlayerTracking {
     }
     message = message.append(Component.text(" を発動！").color(NamedTextColor.WHITE));
     player.sendMessage(message);
-    coolDownTimer = scheduler.runTaskLater(this::onCoolDown, skill.cooldownTicks());
+    coolDownTimer = scheduler.runTaskLater(this::onCoolDown, skill.coolDownTicks());
     restartActionBarUpdateTimer();
     if (skill.target() == EffectTarget.SELF) {
       if (skill.type() == SkillType.INVULNERABLE) {
@@ -127,11 +127,11 @@ public class PlayerTracking {
       }
       return null;
     } else {
-      var effect = skill.createPotionEffect();
-      if (effect == null) {
+      var effectType = skill.type().potionEffectType();
+      if (effectType == null) {
         return null;
       }
-      return new SkillActivationResult(skill.target(), effect);
+      return new SkillActivationResult(skill.target(), effectType, System.currentTimeMillis() + (long) skill.effectiveSeconds() * 1000);
     }
   }
 

@@ -15,7 +15,7 @@ public record Skill(SkillType type, @Nonnull EffectTarget target, int coolDownSe
     return new PotionEffect(type, effectiveTicks(), 1);
   }
 
-  int cooldownTicks() {
+  int coolDownTicks() {
     return coolDownSeconds * 20;
   }
 
