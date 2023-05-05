@@ -154,8 +154,8 @@ public class SikeMura extends Area {
     }
   }
 
-  SikeMura(World world) {
-    super(world);
+  SikeMura(World world, MainDelegate delegate) {
+    super(world, delegate);
   }
 
   @Override

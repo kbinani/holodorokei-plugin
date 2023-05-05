@@ -10,6 +10,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nonnull;
@@ -36,6 +37,8 @@ public abstract class Area {
   boolean missionStarted = false;
   boolean missionFinished = false;
   private static @Nullable ItemStack sPlayerHead;
+  private @Nullable BukkitTask beaconRespawnTimer;
+  private final @Nonnull MainDelegate delegate;
 
   abstract ChestPosition[] chestPositionList();
 
@@ -59,8 +62,9 @@ public abstract class Area {
 
   abstract BoundingBox bounds();
 
-  Area(World world) {
+  Area(World world, MainDelegate delegate) {
     this.world = world;
+    this.delegate = delegate;
   }
 
   private static @Nonnull ItemStack CreateHoloXerHead() {
@@ -78,7 +82,7 @@ public abstract class Area {
     return sPlayerHead.clone();
   }
 
-  void initialize(UUID sessionId) {
+  void start(UUID sessionId) {
     var positions = new ArrayList<>(List.of(chestPositionList()));
     Collections.shuffle(positions);
     for (int i = 0; i < positions.size(); i++) {
@@ -114,14 +118,17 @@ public abstract class Area {
         inventory.setItem(13, holoXerHead);
       }
     }
-    for (var p : beaconPositionList()) {
-      BlockData blockData = Material.BEACON.createBlockData();
-      world.setBlockData(p.x, p.y, p.z, blockData);
-    }
+    spawnBeacons();
     mission = initializeMission(world);
     if (mission != null) {
       mission.cleanup(world);
     }
+
+    // ビーコンは 5 分に一度湧く:
+    //  - https://youtu.be/Jv8CKtDfvAM?t=2432
+    //  - https://youtu.be/Jv8CKtDfvAM?t=2731
+    var interval = 55 * 60 * 20;
+    beaconRespawnTimer = Bukkit.getScheduler().runTaskTimer(delegate.mainDelegateGetOwner(), this::spawnBeacons, interval, interval);
   }
 
   void cleanup() {
@@ -141,6 +148,10 @@ public abstract class Area {
     }
     for (var wall : shutoutWalls()) {
       Editor.Fill(world, wall.from, wall.to, "air");
+    }
+    if (beaconRespawnTimer != null) {
+      beaconRespawnTimer.cancel();
+      beaconRespawnTimer = null;
     }
   }
 
@@ -203,6 +214,13 @@ public abstract class Area {
     if (mission != null) {
       mission.cleanup(world);
       missionFinished = true;
+    }
+  }
+
+  private void spawnBeacons() {
+    for (var p : beaconPositionList()) {
+      BlockData blockData = Material.BEACON.createBlockData();
+      world.setBlockData(p.x, p.y, p.z, blockData);
     }
   }
 }

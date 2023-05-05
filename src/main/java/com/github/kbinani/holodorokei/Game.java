@@ -72,10 +72,10 @@ public class Game {
   Game(@Nonnull MainDelegate delegate, World world, GameSetting setting) {
     this.world = world;
     this.setting = setting;
-    this.soraStation = new SoraStation(world);
-    this.sikeMura = new SikeMura(world);
-    this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world);
-    this.dododoTown = new DododoTown(world);
+    this.soraStation = new SoraStation(world, delegate);
+    this.sikeMura = new SikeMura(world, delegate);
+    this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world, delegate);
+    this.dododoTown = new DododoTown(world, delegate);
     this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
     this.deliveryMissions = new HashMap<>();
     Arrays.stream(AreaType.values()).forEach(type -> {
@@ -131,7 +131,7 @@ public class Game {
       inventory.clear();
     }
     for (var area : areas) {
-      area.initialize(sessionId);
+      area.start(sessionId);
     }
     board.update(this);
 

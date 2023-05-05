@@ -105,8 +105,8 @@ public class ShiranuiKensetsuBuilding extends Area {
     }
   }
 
-  ShiranuiKensetsuBuilding(World world) {
-    super(world);
+  ShiranuiKensetsuBuilding(World world, MainDelegate delegate) {
+    super(world, delegate);
   }
 
   @Override
