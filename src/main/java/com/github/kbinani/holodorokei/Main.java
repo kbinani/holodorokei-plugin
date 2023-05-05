@@ -26,6 +26,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 
+import java.lang.ref.WeakReference;
 import java.util.Optional;
 import java.util.logging.Level;
 
@@ -333,7 +334,8 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       server.sendMessage(Component.text(String.format("ゲームを開始できません。理由: %s", reason)).color(NamedTextColor.RED));
       return;
     }
-    game = new Game(this, scheduler, world, setting);
+    game = new Game(scheduler, world, setting);
+    game.delegate = new WeakReference<>(this);
     this.setting = new GameSetting();
     server.sendMessage(Component.empty());
     server.sendMessage(Component.text(String.format("ゲームを開始します！（ドロボウ：%d人、ケイサツ：%d人）", game.getNumThieves(), game.getNumCops())));

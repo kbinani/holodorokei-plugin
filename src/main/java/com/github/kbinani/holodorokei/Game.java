@@ -31,12 +31,13 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Game {
+  public @Nullable WeakReference<GameDelegate> delegate;
   private final GameSetting setting;
   private final World world;
   private final Area[] areas;
@@ -58,14 +59,13 @@ public class Game {
   private long resurrectionCoolDownMillis;
   private @Nullable BukkitTask resurrectionCoolDownTimer;
   private @Nullable BukkitTask resurrectionMainBarUpdateTimer;
-  private final @Nonnull GameDelegate delegate;
   private final Scheduler scheduler;
   private final UUID sessionId;
 
-  private AreaMissionStatus[] areaMissions = new AreaMissionStatus[]{};
+  private final AreaMissionStatus[] areaMissions;
   private final Map<AreaType, Boolean> deliveryMissions;
 
-  Game(@Nonnull GameDelegate delegate, Scheduler scheduler, World world, GameSetting setting) {
+  Game(Scheduler scheduler, World world, GameSetting setting) {
     this.world = world;
     this.setting = setting;
     var soraStation = new SoraStation(world, scheduler);
@@ -79,7 +79,6 @@ public class Game {
     });
     this.board = new ProgressBoardSet();
     this.duration = setting.duration;
-    this.delegate = delegate;
     this.scheduler = scheduler;
     this.sessionId = UUID.randomUUID();
 
@@ -566,7 +565,10 @@ public class Game {
       server.sendMessage(Component.empty());
 
       terminate();
-      delegate.gameDidFinish();
+      var delegate = this.delegate.get();
+      if (delegate != null) {
+        delegate.gameDidFinish();
+      }
     }
   }
 
@@ -883,7 +885,10 @@ public class Game {
     server.sendMessage(Component.empty());
 
     terminate();
-    delegate.gameDidFinish();
+    var delegate = this.delegate.get();
+    if (delegate != null) {
+      delegate.gameDidFinish();
+    }
   }
 
   private void updateBossBars() {
