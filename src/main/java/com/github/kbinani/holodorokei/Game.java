@@ -442,6 +442,15 @@ public class Game {
         completeAreaMission(area.type());
       }
     }
+    var cop = findCopPlayer(e.getPlayer());
+    if (e.getHand() == EquipmentSlot.HAND && e.getAction() == Action.RIGHT_CLICK_BLOCK && cop != null) {
+      //NOTE: この仕様が実装されているのか不明: ケイサツが holoXer の頭や納品アイテムをガメることで妨害になる. この妨害は防御できないのでそもそもチェスト開けることを禁止にする.
+      var block = e.getClickedBlock();
+      if (block != null && (block.getType() == Material.CHEST || block.getType() == Material.HOPPER)) {
+        e.setCancelled(true);
+        return;
+      }
+    }
     if (e.getHand() == EquipmentSlot.HAND && (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) {
       var item = e.getItem();
       if (item != null) {
