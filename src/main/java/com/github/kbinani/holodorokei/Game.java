@@ -752,6 +752,10 @@ public class Game {
     }
     e.setDamage(0);
 
+    var server = Bukkit.getServer();
+    var component = prisoner.player.teamDisplayName().append(Component.text("が逃げ出した！").color(NamedTextColor.WHITE));
+    server.sendMessage(component);
+
     prisoners.remove(prisoner);
     thieves.add(prisoner);
     var p = kEscapeLocation;
@@ -762,10 +766,6 @@ public class Game {
     prisoner.addInvulnerableByResurrection(setting.invulnerableSecondsAfterResurrection);
     thief.addInvulnerableByResurrection(setting.invulnerableSecondsAfterResurrection);
     prisoner.setArrested(false);
-
-    var server = Bukkit.getServer();
-    var component = prisoner.player.teamDisplayName().append(Component.text("が逃げ出した！").color(NamedTextColor.WHITE));
-    server.sendMessage(component);
 
     resurrectionCoolDownMillis = System.currentTimeMillis() + (long) setting.resurrectCoolDownSeconds * 1000;
     if (resurrectionCoolDownTimer != null) {
