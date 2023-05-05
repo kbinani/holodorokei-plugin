@@ -91,10 +91,12 @@ public class PlayerTracking {
       return null;
     }
     activeSkillType = skill.type();
-    long coolDownMillis = (long) skill.coolDownSeconds() * 1000;
+    int coolDownTicks = skill.coolDownTicks();
     if (role == Role.THIEF && shortened) {
-      coolDownMillis = coolDownMillis * 2 / 3;
+      // 60 => 40
+      coolDownTicks = coolDownTicks * 2 / 3;
     }
+    long coolDownMillis = (long) coolDownTicks * 1000 / 20;
     skillCoolDownMillis = System.currentTimeMillis() + coolDownMillis;
     var message = player.teamDisplayName().append(Component.text("が ").color(NamedTextColor.WHITE));
     if (role == Role.RESEARCHER) {
@@ -106,7 +108,7 @@ public class PlayerTracking {
     }
     message = message.append(Component.text(" を発動！").color(NamedTextColor.WHITE));
     player.sendMessage(message);
-    coolDownTimer = scheduler.runTaskLater(this::onCoolDown, skill.coolDownTicks());
+    coolDownTimer = scheduler.runTaskLater(this::onCoolDown, coolDownTicks);
     restartActionBarUpdateTimer();
     if (skill.target() == EffectTarget.SELF) {
       if (skill.type() == SkillType.INVULNERABLE) {
