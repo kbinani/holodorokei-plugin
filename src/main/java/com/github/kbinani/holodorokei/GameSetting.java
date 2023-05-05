@@ -21,6 +21,7 @@ public class GameSetting {
   int duration = 20;
   int resurrectCoolDownSeconds = 10;
   int invulnerableSecondsAfterResurrection = 9;
+  boolean enableKatsumokuSeyo = false;
 
   void reset() {
     var thief = Teams.Instance().thief;
@@ -163,6 +164,7 @@ public class GameSetting {
     areaMissionSchedule.clear();
     areaMissionSchedule.put(type, 4);
     duration = 5;
+    enableKatsumokuSeyo = false;
   }
 
   void scheduleRegularAreaMissionRandomly() {
@@ -173,6 +175,7 @@ public class GameSetting {
       areaMissionSchedule.put(types.get(i), 6 * (3 - i));
     }
     duration = 20;
+    enableKatsumokuSeyo = true;
   }
 
   //NOTE: null ならスタート可, nonnull ならスタートできない理由

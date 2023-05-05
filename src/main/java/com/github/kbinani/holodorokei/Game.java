@@ -61,6 +61,9 @@ public class Game {
   private @Nullable BukkitTask resurrectionMainBarUpdateTimer;
   private final Scheduler scheduler;
   private final UUID sessionId;
+  private @Nullable BukkitTask katsumokuSeyoNoticeTimer;
+  private @Nullable BukkitTask katsumokuSeyoStartTimer;
+  private boolean katsumokuActivated = false;
 
   private final AreaMissionStatus[] areaMissions;
   private final Map<AreaType, Boolean> deliveryMissions;
@@ -153,6 +156,11 @@ public class Game {
 
     bossBarsUpdateTimer = scheduler.runTaskTimer(this::updateBossBars, 20, 20);
 
+    if (setting.enableKatsumokuSeyo) {
+      katsumokuSeyoNoticeTimer = scheduler.runTaskLater(this::noticeKatsumokuSeyo, (duration - 4) * 60 * 20);
+      katsumokuSeyoStartTimer = scheduler.runTaskLater(this::startKatsumokuSeyo, (duration - 3) * 60 * 20);
+    }
+
     thieves.forEach(p -> {
       giveThieveItems(p);
       p.start((int) duration);
@@ -164,6 +172,39 @@ public class Game {
       teleportToPrisonCenter(p.player);
       var effect = new PotionEffect(PotionEffectType.DARKNESS, 60 * 20, 1);
       p.player.addPotionEffect(effect);
+    });
+  }
+
+  private void noticeKatsumokuSeyo() {
+    var title = Title.title(Component.text("力が解放されそうだ..."), Component.empty());
+    var messages = new Component[]{
+      Component.empty(),
+      Component.text("-".repeat(23)),
+      Component.text("？？？？：「力が解放されそうだ...」").color(NamedTextColor.DARK_PURPLE),
+      Component.text("-".repeat(23)),
+    };
+    Players.Within(world, Main.field, p -> {
+      p.showTitle(title);
+      Arrays.stream(messages).forEach(p::sendMessage);
+    });
+  }
+
+  private void startKatsumokuSeyo() {
+    katsumokuActivated = true;
+    var title = Title.title(Component.text("刮目せよ！！"), Component.text("最終スキル発動！"));
+    var messages = new Component[]{
+      Component.empty(),
+      Component.text("-".repeat(23)),
+      Component.text("最終スキル発動！").color(NamedTextColor.DARK_PURPLE),
+      Component.empty(),
+      Component.text("「刮目せよ！」").color(NamedTextColor.DARK_PURPLE),
+      Component.empty(),
+      Component.text("※以降ドロボウ").append(Component.text("復活不可！").color(NamedTextColor.RED)).append(Component.text("！").color(NamedTextColor.WHITE)),
+      Component.text("-".repeat(23)),
+    };
+    Players.Within(world, Main.field, p -> {
+      p.showTitle(title);
+      Arrays.stream(messages).forEach(p::sendMessage);
     });
   }
 
@@ -343,6 +384,14 @@ public class Game {
     for (var t : cops) {
       t.player.getInventory().clear();
       t.cleanup();
+    }
+    if (katsumokuSeyoNoticeTimer != null) {
+      katsumokuSeyoNoticeTimer.cancel();
+      katsumokuSeyoNoticeTimer = null;
+    }
+    if (katsumokuSeyoStartTimer != null) {
+      katsumokuSeyoStartTimer.cancel();
+      katsumokuSeyoStartTimer = null;
     }
   }
 
@@ -578,6 +627,9 @@ public class Game {
 
   private void prisonerDamageByThief(PlayerTracking prisoner, PlayerTracking thief, EntityDamageByEntityEvent e) {
     if (System.currentTimeMillis() < resurrectionCoolDownMillis) {
+      return;
+    }
+    if (katsumokuActivated) {
       return;
     }
     e.setDamage(0);
