@@ -27,6 +27,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
@@ -166,7 +167,16 @@ public class Game {
       giveCopItems(p);
       p.selectSkill();
       p.start((int) duration);
+      teleportToPrisonCenter(p.player);
+      var effect = new PotionEffect(PotionEffectType.DARKNESS, 60 * 20, 1);
+      p.player.addPotionEffect(effect);
     });
+  }
+
+  private void teleportToPrisonCenter(Player player) {
+    var location = player.getLocation();
+    location.set(kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z);
+    player.teleport(location);
   }
 
   private void giveThieveItems(PlayerTracking tracking) {
@@ -389,7 +399,7 @@ public class Game {
         if (tracking.role == Role.THIEF) {
           arrest(tracking);
         } else {
-          tracking.player.teleport(new Location(world, kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z));
+          teleportToPrisonCenter(tracking.player);
         }
       }
     }
@@ -675,16 +685,29 @@ public class Game {
   }
 
   void onPlayerMove(PlayerMoveEvent e) {
-    var prisoner = findPrisonerPlayer(e.getPlayer());
-    if (prisoner == null) {
-      return;
+    Player player = null;
+    if (System.currentTimeMillis() < startMillis + 60 * 1000) {
+      var cop = findCopPlayer(e.getPlayer());
+      if (cop == null) {
+        return;
+      }
+      var location = cop.player.getLocation();
+      if (kPrisonBounds.contains(location.toVector())) {
+        return;
+      }
+      player = e.getPlayer();
+    } else {
+      var prisoner = findPrisonerPlayer(e.getPlayer());
+      if (prisoner == null) {
+        return;
+      }
+      var location = prisoner.player.getLocation();
+      if (kPrisonBounds.contains(location.toVector())) {
+        return;
+      }
+      player = e.getPlayer();
     }
-    var location = prisoner.player.getLocation();
-    if (!kPrisonBounds.contains(location.toVector())) {
-      world.spawnParticle(Particle.SPELL_WITCH, location, 10);
-      location.set(kPrisonCenter.x, kPrisonCenter.y, kPrisonCenter.z);
-      prisoner.player.teleport(location);
-    }
+    teleportToPrisonCenter(player);
   }
 
   AreaMissionStatus[] getAreaMissions() {
