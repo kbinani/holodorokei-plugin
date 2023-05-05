@@ -63,7 +63,7 @@ public abstract class Area {
 
   abstract BoundingBox bounds();
 
-  Area(World world, Scheduler scheduler) {
+  Area(World world, @Nonnull Scheduler scheduler) {
     this.world = world;
     this.scheduler = scheduler;
   }

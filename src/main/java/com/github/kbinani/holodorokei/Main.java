@@ -307,11 +307,11 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (result == null) {
       return;
     }
-    if (result.error != null) {
-      player.sendMessage(Component.text(result.error).color(NamedTextColor.RED));
+    if (result.error() != null) {
+      player.sendMessage(Component.text(result.error()).color(NamedTextColor.RED));
     }
-    if (result.ok != null) {
-      getServer().sendMessage(result.ok);
+    if (result.ok() != null) {
+      getServer().sendMessage(result.ok());
     }
   }
 

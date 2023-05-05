@@ -30,10 +30,9 @@ public class Point3i {
     if (o == null) {
       return false;
     }
-    if (!(o instanceof Point3i)) {
+    if (!(o instanceof Point3i v)) {
       return false;
     }
-    Point3i v = (Point3i) o;
     return v.x == x && v.y == y && v.z == z;
   }
 

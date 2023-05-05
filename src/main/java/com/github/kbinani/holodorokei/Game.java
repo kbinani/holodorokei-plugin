@@ -39,10 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Game {
   private final GameSetting setting;
   private final World world;
-  private final SoraStation soraStation;
-  private final SikeMura sikeMura;
-  private final ShiranuiKensetsuBuilding shiranuiKensetsuBuilding;
-  private final DododoTown dododoTown;
   private final Area[] areas;
   private final ProgressBoardSet board;
   private final long duration;
@@ -72,10 +68,10 @@ public class Game {
   Game(@Nonnull GameDelegate delegate, Scheduler scheduler, World world, GameSetting setting) {
     this.world = world;
     this.setting = setting;
-    this.soraStation = new SoraStation(world, scheduler);
-    this.sikeMura = new SikeMura(world, scheduler);
-    this.shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world, scheduler);
-    this.dododoTown = new DododoTown(world, scheduler);
+    var soraStation = new SoraStation(world, scheduler);
+    var sikeMura = new SikeMura(world, scheduler);
+    var shiranuiKensetsuBuilding = new ShiranuiKensetsuBuilding(world, scheduler);
+    var dododoTown = new DododoTown(world, scheduler);
     this.areas = new Area[]{soraStation, sikeMura, shiranuiKensetsuBuilding, dododoTown};
     this.deliveryMissions = new HashMap<>();
     Arrays.stream(AreaType.values()).forEach(type -> {

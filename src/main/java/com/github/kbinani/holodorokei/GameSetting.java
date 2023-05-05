@@ -45,14 +45,7 @@ public class GameSetting {
     }
   }
 
-  static class JoinResult {
-    final Component ok;
-    final String error;
-
-    JoinResult(Component ok, String error) {
-      this.ok = ok;
-      this.error = error;
-    }
+  record JoinResult(@Nullable Component ok, @Nullable String error) {
 
     static JoinResult Ok(Component message) {
       return new JoinResult(message, null);

@@ -165,10 +165,7 @@ public class PlayerTracking {
     if (activeSkillType != null && activeSkillType == SkillType.INVULNERABLE) {
       return true;
     }
-    if (System.currentTimeMillis() < resurrectionTimeoutMillis) {
-      return true;
-    }
-    return false;
+    return System.currentTimeMillis() < resurrectionTimeoutMillis;
   }
 
   void depriveSkill() {
