@@ -263,6 +263,7 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
       sign.line(1, Component.text("納品ミッション"));
       sign.line(2, Component.text("納品先はこちら！"));
       sign.setColor(DyeColor.YELLOW);
+      sign.setGlowingText(true);
       sign.update();
     }
   }
@@ -343,8 +344,6 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
 
   private final Point3i kButtonEntryManager = new Point3i(6, -63, -14);
   private final Point3i kButtonLeave = new Point3i(5, -63, -14);
-
-  private final Point3i kSignDelivery = new Point3i(-5, -60, -24);
 
   public static final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
   public static final String kAreaItemSessionIdKey = "holodorokei_session_id";
