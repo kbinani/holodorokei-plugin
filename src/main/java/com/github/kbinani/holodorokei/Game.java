@@ -359,12 +359,17 @@ public class Game {
 
     long resurrectionTimeoutSeconds = Math.max(0, (resurrectionCoolDownMillis - System.currentTimeMillis()) / 1000);
 
-    return Component.text("残り時間：")
+    var name = Component.text("残り時間：")
       .append(Component.text(String.format("%d:%02d", minutes, seconds)).color(NamedTextColor.GREEN))
       .append(Component.text("  ドロボウ残り："))
-      .append(Component.text(thieves.size()).color(NamedTextColor.GOLD))
-      .append(Component.text("  復活クールタイム："))
-      .append(Component.text(resurrectionTimeoutSeconds).color(NamedTextColor.YELLOW));
+      .append(Component.text(thieves.size()).color(NamedTextColor.GOLD));
+    if (katsumokuActivated) {
+      return name.append(Component.text("  復活不可").color(NamedTextColor.RED));
+    } else {
+      return name
+        .append(Component.text("  復活クールタイム："))
+        .append(Component.text(resurrectionTimeoutSeconds).color(NamedTextColor.YELLOW));
+    }
   }
 
   int getNumCops() {
