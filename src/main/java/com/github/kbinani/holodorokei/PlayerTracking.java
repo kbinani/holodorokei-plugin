@@ -303,4 +303,8 @@ public class PlayerTracking {
     }
     this.arrested = arrested;
   }
+
+  boolean isArrested() {
+    return arrested;
+  }
 }

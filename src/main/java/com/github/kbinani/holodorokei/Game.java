@@ -383,11 +383,14 @@ public class Game {
         }
       }
       case SPLASH_POTION -> {
-        var tracking = findPlayer(player, false);
+        var tracking = findPlayer(player, true);
         if (tracking == null) {
           return;
         }
         cancellable.setCancelled(true);
+        if (tracking.isArrested()) {
+          return;
+        }
         if (tracking.role == Role.THIEF) {
           arrest(tracking);
         } else {
@@ -402,7 +405,7 @@ public class Game {
   }
 
   void onPlayerToggleSneak(PlayerToggleSneakEvent e) {
-    var player = findPlayer(e.getPlayer(), false);
+    var player = findCopPlayer(e.getPlayer());
     if (player == null) {
       return;
     }
@@ -417,11 +420,8 @@ public class Game {
   }
 
   void onBlockBreak(BlockBreakEvent e) {
-    var player = findPlayer(e.getPlayer(), false);
+    var player = findThiefPlayer(e.getPlayer());
     if (player == null) {
-      return;
-    }
-    if (player.role != Role.THIEF) {
       return;
     }
     var block = e.getBlock();
