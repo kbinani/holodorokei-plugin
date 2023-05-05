@@ -182,20 +182,22 @@ public class Game {
 
     var y = -54;
     for (int x = -10; x <= -1; x++) {
-      spawnParticleAndNext(new Point3i(x, y, -4));
-      spawnParticleAndNext(new Point3i(x, y, 5));
+      spawnParticleAndNext(new Point3i(x, y, -4), false);
+      spawnParticleAndNext(new Point3i(x, y, 5), false);
     }
     for (int z = -4; z <= 5; z++) {
-      spawnParticleAndNext(new Point3i(-10, y, z));
-      spawnParticleAndNext(new Point3i(-1, y, z));
+      spawnParticleAndNext(new Point3i(-10, y, z), false);
+      spawnParticleAndNext(new Point3i(-1, y, z), false);
     }
   }
 
-  private void spawnParticleAndNext(Point3i p) {
-    world.spawnParticle(Particle.SPELL_WITCH, p.x + 0.5, p.y, p.z + 0.5, 1);
+  private void spawnParticleAndNext(Point3i p, boolean spawn) {
+    if (spawn) {
+      world.spawnParticle(Particle.SPELL_WITCH, p.x + 0.5, p.y, p.z + 0.5, 1);
+    }
     var delta = getRandomInt(5 * 20, 10 * 20);
     var point = new Point3i(p);
-    witchParticleTimers.put(point, scheduler.runTaskLater(() -> spawnParticleAndNext(point), delta));
+    witchParticleTimers.put(point, scheduler.runTaskLater(() -> spawnParticleAndNext(point, true), delta));
   }
 
   private int getRandomInt(int min, int max) {
