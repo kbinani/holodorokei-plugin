@@ -73,7 +73,7 @@ public abstract class Area {
       var item = new ItemStack(Material.PLAYER_HEAD);
       if (item.getItemMeta() instanceof SkullMeta skull) {
         var server = Bukkit.getServer();
-        var staff1 = server.getOfflinePlayer("UNEI_Staff1");
+        var staff1 = server.getOfflinePlayer("kbinani3");
         skull.setOwningPlayer(staff1);
         skull.displayName(Component.text("holoXerの頭"));
         item.setItemMeta(skull);
