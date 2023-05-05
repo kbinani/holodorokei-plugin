@@ -2,6 +2,8 @@ package com.github.kbinani.holodorokei;
 
 import org.bukkit.Location;
 
+import java.util.Objects;
+
 public class Point3i {
   public int x;
   public int y;
@@ -39,5 +41,10 @@ public class Point3i {
   @Override
   public String toString() {
     return String.format("[%d,%d,%d]", x, y, z);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(x, y, z);
   }
 }

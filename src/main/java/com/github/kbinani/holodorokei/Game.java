@@ -31,6 +31,7 @@ import org.bukkit.util.BoundingBox;
 
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,9 +65,12 @@ public class Game {
   private boolean katsumokuActivated = false;
   private final Map<PotionEffectType, Long> potionsActiveForCopsUntilMillis = new HashMap<>();
   private final Map<PotionEffectType, Long> potionsActiveForThievesUntilMillis = new HashMap<>();
+  private final Map<Point3i, BukkitTask> witchParticleTimers = new HashMap<>();
 
   private final AreaMissionStatus[] areaMissions;
   private final Map<AreaType, Boolean> deliveryMissions;
+
+  private static Random sRandom = null;
 
   Game(Scheduler scheduler, World world, GameSetting setting) {
     this.world = world;
@@ -175,6 +179,34 @@ public class Game {
       p.player.addPotionEffect(effect);
       potionsActiveForCopsUntilMillis.put(PotionEffectType.DARKNESS, System.currentTimeMillis() + darknessSeconds * 1000);
     });
+
+    var y = -54;
+    for (int x = -10; x <= -1; x++) {
+      spawnParticleAndNext(new Point3i(x, y, -4));
+      spawnParticleAndNext(new Point3i(x, y, 5));
+    }
+    for (int z = -4; z <= 5; z++) {
+      spawnParticleAndNext(new Point3i(-10, y, z));
+      spawnParticleAndNext(new Point3i(-1, y, z));
+    }
+  }
+
+  private void spawnParticleAndNext(Point3i p) {
+    world.spawnParticle(Particle.SPELL_WITCH, p.x + 0.5, p.y, p.z + 0.5, 1);
+    var delta = getRandomInt(5 * 20, 10 * 20);
+    var point = new Point3i(p);
+    witchParticleTimers.put(point, scheduler.runTaskLater(() -> spawnParticleAndNext(point), delta));
+  }
+
+  private int getRandomInt(int min, int max) {
+    if (sRandom == null) {
+      try {
+        sRandom = SecureRandom.getInstance("SHA1PRNG");
+      } catch (Throwable e) {
+        sRandom = new Random();
+      }
+    }
+    return sRandom.nextInt(min, max);
   }
 
   private void noticeKatsumokuSeyo() {
@@ -395,6 +427,10 @@ public class Game {
       katsumokuSeyoStartTimer.cancel();
       katsumokuSeyoStartTimer = null;
     }
+    for (var timer : witchParticleTimers.values()) {
+      timer.cancel();
+    }
+    witchParticleTimers.clear();
   }
 
   void onPlayerInteract(PlayerInteractEvent e) {
