@@ -4,9 +4,13 @@ import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.DyeColor;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -249,6 +253,18 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
 
     Editor.WallSign(world, kButtonEntryManager, BlockFace.NORTH, DyeColor.GREEN, "運営でエントリー");
     Editor.WallSign(world, kButtonLeave, BlockFace.NORTH, DyeColor.WHITE, "エントリー解除");
+
+    var p = new Point3i(-5, -60, -24);
+    BlockData blockData = Material.BIRCH_WALL_SIGN.createBlockData("[facing=south]");
+    world.setBlockData(p.x, p.y, p.z, blockData);
+    Block block = world.getBlockAt(p.x, p.y, p.z);
+    BlockState state = block.getState();
+    if (state instanceof Sign sign) {
+      sign.line(1, Component.text("納品ミッション"));
+      sign.line(2, Component.text("納品先はこちら！"));
+      sign.setColor(DyeColor.YELLOW);
+      sign.update();
+    }
   }
 
   private void reset() {
@@ -327,6 +343,8 @@ public class Main extends JavaPlugin implements Listener, MainDelegate {
 
   private final Point3i kButtonEntryManager = new Point3i(6, -63, -14);
   private final Point3i kButtonLeave = new Point3i(5, -63, -14);
+
+  private final Point3i kSignDelivery = new Point3i(-5, -60, -24);
 
   public static final BoundingBox field = new BoundingBox(-141, -64, -112, 77, 384, 140);
   public static final String kAreaItemSessionIdKey = "holodorokei_session_id";
