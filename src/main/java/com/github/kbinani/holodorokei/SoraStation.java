@@ -42,6 +42,16 @@ public class SoraStation extends Area {
           default -> null;
         };
       }
+
+      String color() {
+        return switch (this) {
+          case IROHA -> "青緑色";
+          case KOYO -> "桃色";
+          case LAPLUS -> "紫色";
+          case LUI -> "赤紫色";
+          case CHLOE -> "赤色";
+        };
+      }
     }
 
     final ArrayList<Member> clickOrder = new ArrayList<>();
@@ -149,6 +159,11 @@ public class SoraStation extends Area {
         return false;
       }
       e.setCancelled(true);
+      if (shutdownScheduled) {
+        var player = e.getPlayer();
+        player.sendMessage(Component.text(String.format("%sのボタンがある。今は何も起こらないようだ...", member.color())));
+        return false;
+      }
       clickOrder.add(member);
       if (!clicked.contains(member)) {
         clicked.add(member);

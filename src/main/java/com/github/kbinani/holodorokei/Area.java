@@ -224,6 +224,9 @@ public abstract class Area {
     if (shutoutTimer != null) {
       shutoutTimer.cancel();
     }
+    if (mission != null) {
+      mission.setShutdownScheduled();
+    }
     shutoutTimer = scheduler.runTaskLater(this::shutout, 10 * 20);
     if (beaconRespawnTimer != null) {
       beaconRespawnTimer.cancel();
