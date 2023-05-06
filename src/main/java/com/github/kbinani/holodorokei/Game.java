@@ -36,7 +36,7 @@ import java.lang.ref.WeakReference;
 import java.security.SecureRandom;
 import java.util.*;
 
-public class Game {
+public class Game implements PlayerTrackingDelegate {
   public @Nullable WeakReference<GameDelegate> delegate;
   private final GameSetting setting;
   private final World world;
@@ -106,11 +106,11 @@ public class Game {
     this.areaMissions = areaMissions.stream().map(Entry::toStatus).toList().toArray(new AreaMissionStatus[]{});
 
     for (var p : setting.thieves) {
-      thieves.add(new PlayerTracking(p, Role.THIEF, scheduler));
+      thieves.add(new PlayerTracking(p, Role.THIEF, scheduler, this));
     }
-    femaleExecutive = setting.femaleExecutive == null ? null : new PlayerTracking(setting.femaleExecutive, Role.FEMALE_EXECUTIVE, scheduler);
-    researcher = setting.researcher == null ? null : new PlayerTracking(setting.researcher, Role.RESEARCHER, scheduler);
-    cleaner = setting.cleaner == null ? null : new PlayerTracking(setting.cleaner, Role.CLEANER, scheduler);
+    femaleExecutive = setting.femaleExecutive == null ? null : new PlayerTracking(setting.femaleExecutive, Role.FEMALE_EXECUTIVE, scheduler, this);
+    researcher = setting.researcher == null ? null : new PlayerTracking(setting.researcher, Role.RESEARCHER, scheduler, this);
+    cleaner = setting.cleaner == null ? null : new PlayerTracking(setting.cleaner, Role.CLEANER, scheduler, this);
     var cops = new ArrayList<PlayerTracking>();
     if (femaleExecutive != null) {
       cops.add(femaleExecutive);
@@ -320,6 +320,13 @@ public class Game {
   private int getRemainingGameSeconds() {
     long remaining = Math.min(startMillis + duration * 60 * 1000 - System.currentTimeMillis(), duration * 60 * 1000);
     return (int) (remaining / 1000);
+  }
+
+  @Override
+  public void playerTrackingDidUseSkill(Component message) {
+    for (var p : setting.managers) {
+      p.sendMessage(message);
+    }
   }
 
   record ActiveAreaMission(AreaType type, int remainingSeconds) {

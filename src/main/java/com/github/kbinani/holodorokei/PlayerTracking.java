@@ -9,6 +9,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
 import java.security.SecureRandom;
 import java.util.Random;
 
@@ -24,13 +25,15 @@ public class PlayerTracking {
   private @Nullable BukkitTask invulnerableTimeoutTimer;
   private long resurrectionTimeoutMillis;
   private boolean arrested = false;
+  private final WeakReference<PlayerTrackingDelegate> delegate;
 
   static Random sRandom = null;
 
-  PlayerTracking(Player player, Role role, @Nonnull Scheduler scheduler) {
+  PlayerTracking(Player player, Role role, @Nonnull Scheduler scheduler, @Nonnull PlayerTrackingDelegate delegate) {
     this.player = player;
     this.role = role;
     this.scheduler = scheduler;
+    this.delegate = new WeakReference<>(delegate);
   }
 
   void selectSkill() {
@@ -107,6 +110,10 @@ public class PlayerTracking {
     }
     message = message.append(Component.text(" を発動！").color(NamedTextColor.WHITE));
     player.sendMessage(message);
+    var delegate = this.delegate.get();
+    if (delegate != null) {
+      delegate.playerTrackingDidUseSkill(message);
+    }
     coolDownTimer = scheduler.runTaskLater(this::onCoolDown, coolDownTicks);
     restartActionBarUpdateTimer();
     if (skill.target() == EffectTarget.SELF) {
