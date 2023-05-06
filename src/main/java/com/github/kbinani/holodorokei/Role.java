@@ -5,5 +5,4 @@ public enum Role {
   FEMALE_EXECUTIVE,
   RESEARCHER,
   CLEANER,
-  MANAGER,
 }

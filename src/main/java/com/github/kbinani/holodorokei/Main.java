@@ -4,10 +4,7 @@ import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.DyeColor;
-import org.bukkit.GameRule;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -30,9 +27,7 @@ import org.bukkit.util.BoundingBox;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Level;
 
 public class Main extends JavaPlugin implements Listener, GameDelegate {
@@ -41,6 +36,7 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
   private Game game;
   private GameSetting setting = new GameSetting();
   private final Scheduler scheduler = new Scheduler(this);
+  private final Set<Player> managers = new HashSet<>();
 
   @Override
   public void onEnable() {
@@ -127,7 +123,11 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       }
     } else if (location.equals(kButtonEntryManager)) {
       if (game == null) {
-        onClickJoin(player, Role.MANAGER);
+        if (managers.contains(player)) {
+          getServer().sendMessage(Component.text("既に運営として参加済みです").color(NamedTextColor.RED));
+        } else {
+          joinAsManager(player);
+        }
       }
     } else if (location.equals(kButtonLeave)) {
       if (game == null) {
@@ -362,13 +362,41 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
         return false;
       }
       this.game.start();
+      server.getOnlinePlayers().forEach(p -> {
+        if (game.findPlayer(p, true) == null) {
+          joinAsManager(p);
+        }
+      });
+      managers.forEach(p -> {
+        p.setGameMode(GameMode.SPECTATOR);
+      });
       return true;
     }, 20);
+  }
+
+  private void joinAsManager(Player player) {
+    managers.add(player);
+    Teams.Instance().manager.addPlayer(player);
+    if (game == null) {
+      getServer().sendMessage(player.teamDisplayName().append(Component.text("がエントリーしました（運営）").color(NamedTextColor.WHITE)));
+    }
   }
 
   @Override
   public void gameDidFinish() {
     this.game = null;
+    managers.forEach(p -> {
+      Teams.Instance().manager.removePlayer(p);
+      var location = p.getLocation();
+      teleport(p, location.x(), world.getHighestBlockYAt(location.getBlockX(), location.getBlockY()) + 1, location.z());
+      p.setGameMode(GameMode.ADVENTURE);
+    });
+  }
+
+  private void teleport(Player player, double x, double y, double z) {
+    var location = player.getLocation();
+    location.set(x, y, z);
+    player.teleport(location);
   }
 
   private String[] lookupInvalidServerConfigs() {

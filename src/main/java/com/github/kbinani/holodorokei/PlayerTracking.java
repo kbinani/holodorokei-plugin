@@ -68,7 +68,6 @@ public class PlayerTracking {
           this.skill = new Skill(type, target, type.coolDownSeconds(role), type.effectiveSeconds(role));
         }
       }
-      case MANAGER -> this.skill = null;
     }
     updateActionBar();
   }
@@ -218,9 +217,6 @@ public class PlayerTracking {
   }
 
   private void updateActionBar() {
-    if (role == Role.MANAGER) {
-      return;
-    }
     var component = Component.empty();
     if (role == Role.THIEF) {
       if (arrested) {

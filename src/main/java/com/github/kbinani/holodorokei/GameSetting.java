@@ -16,7 +16,6 @@ public class GameSetting {
   Player researcher;
   @Nullable
   Player cleaner;
-  final Set<Player> managers = new HashSet<>();
   final Map<AreaType, Integer> areaMissionSchedule = new HashMap<>();
   int duration = 20;
   int resurrectCoolDownSeconds = 10;
@@ -39,11 +38,6 @@ public class GameSetting {
     }
     if (cleaner != null) {
       cop.removePlayer(cleaner);
-    }
-
-    var manager = Teams.Instance().manager;
-    for (var player : managers) {
-      manager.removePlayer(player);
     }
   }
 
@@ -81,19 +75,11 @@ public class GameSetting {
     if (thieves.contains(player)) {
       return JoinResult.Error("既にドロボウとして参加済みです");
     }
-    if (managers.contains(player)) {
-      return JoinResult.Error("既に運営として参加済みです");
-    }
     switch (role) {
       case THIEF -> {
         Teams.Instance().thief.addPlayer(player);
         thieves.add(player);
         return JoinResult.Ok(player.teamDisplayName().append(Component.text("がエントリーしました（ドロボウ）").color(NamedTextColor.WHITE)));
-      }
-      case MANAGER -> {
-        Teams.Instance().manager.addPlayer(player);
-        managers.add(player);
-        return JoinResult.Ok(player.teamDisplayName().append(Component.text("がエントリーしました（運営）").color(NamedTextColor.WHITE)));
       }
       case FEMALE_EXECUTIVE -> {
         Teams.Instance().cop.addPlayer(player);
@@ -128,11 +114,6 @@ public class GameSetting {
     if (cleaner == player) {
       Teams.Instance().cop.removePlayer(player);
       cleaner = null;
-      return true;
-    }
-    if (managers.contains(player)) {
-      Teams.Instance().manager.removePlayer(player);
-      managers.remove(player);
       return true;
     }
     if (thieves.contains(player)) {

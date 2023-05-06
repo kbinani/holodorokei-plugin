@@ -328,9 +328,15 @@ public class Game implements PlayerTrackingDelegate {
 
   @Override
   public void playerTrackingDidUseSkill(Component message) {
-    for (var p : setting.managers) {
-      p.sendMessage(message);
-    }
+    Bukkit.getServer().getOnlinePlayers().forEach(p -> {
+      if (p.getWorld() != world) {
+        return;
+      }
+      var tracking = findPlayer(p, true);
+      if (tracking == null) {
+        p.sendMessage(message);
+      }
+    });
   }
 
   record ActiveAreaMission(AreaType type, int remainingSeconds) {
@@ -393,10 +399,16 @@ public class Game implements PlayerTrackingDelegate {
   }
 
   void terminate() {
+    var server = Bukkit.getServer();
     thieves.forEach(p -> Teams.Instance().thief.removePlayer(p.player));
     prisoners.forEach(p -> Teams.Instance().prisoner.removePlayer(p.player));
     Arrays.stream(cops).forEach(p -> Teams.Instance().cop.removePlayer(p.player));
-    setting.managers.forEach(p -> Teams.Instance().manager.removePlayer(p));
+    server.getOnlinePlayers().forEach(p -> {
+      if (p.getWorld() != world) {
+        return;
+      }
+      Teams.Instance().manager.removePlayer(p);
+    });
     for (var area : areas) {
       area.cleanup();
     }
@@ -411,7 +423,6 @@ public class Game implements PlayerTrackingDelegate {
       gameTimeoutTimer.cancel();
       gameTimeoutTimer = null;
     }
-    var server = Bukkit.getServer();
     server.getOnlinePlayers().forEach(p -> {
       if (mainBossBar != null) {
         p.hideBossBar(mainBossBar);
@@ -699,13 +710,6 @@ public class Game implements PlayerTrackingDelegate {
         return;
       }
     }
-    for (var p : setting.managers) {
-      if (p.getUniqueId().equals(id)) {
-        setting.managers.remove(p);
-        setting.managers.add(player);
-        return;
-      }
-    }
   }
 
   private void thiefDamageByZombie(PlayerTracking thief, Zombie zombie, EntityDamageByEntityEvent e) {
@@ -842,7 +846,8 @@ public class Game implements PlayerTrackingDelegate {
     }
   }
 
-  private @Nullable PlayerTracking findPlayer(Player player, boolean includePrisoner) {
+  @Nullable
+  PlayerTracking findPlayer(Player player, boolean includePrisoner) {
     if (femaleExecutive != null && femaleExecutive.player.equals(player)) {
       return femaleExecutive;
     }
