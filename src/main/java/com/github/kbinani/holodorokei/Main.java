@@ -22,6 +22,8 @@ import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.BoundingBox;
 
 import java.io.FileInputStream;
@@ -105,6 +107,11 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
         joinAsManager(player);
       }
     }
+    for (var effect : player.getActivePotionEffects()) {
+      player.removePotionEffect(effect.getType());
+    }
+    var effect = new PotionEffect(PotionEffectType.SATURATION, 30 * 24 * 60 * 60 * 20, 1, false, false);
+    player.addPotionEffect(effect);
   }
 
   @EventHandler

@@ -668,9 +668,6 @@ public class Game implements PlayerTrackingDelegate {
     for (var tracking : cops) {
       if (tracking.player.getUniqueId().equals(id)) {
         tracking.player = player;
-        for (var effect : player.getActivePotionEffects()) {
-          player.removePotionEffect(effect.getType());
-        }
         ensurePotionEffects(tracking);
         giveCopItems(tracking);
         if (System.currentTimeMillis() < startMillis + (long) setting.copInitialDelaySeconds * 1000) {
@@ -937,12 +934,6 @@ public class Game implements PlayerTrackingDelegate {
   }
 
   private void ensurePotionEffects(PlayerTracking tracking) {
-    var remaining = startMillis + duration * 60 * 1000 - System.currentTimeMillis();
-    var durationTicks = (int) Math.ceil(remaining / 1000.0 * 20);
-    if (durationTicks > 0) {
-      tracking.addDefaultPotionEffect(durationTicks);
-    }
-
     var now = System.currentTimeMillis();
     switch (tracking.role) {
       case THIEF -> {

@@ -256,7 +256,6 @@ public class PlayerTracking {
 
   void start(int durationMinutes) {
     updateActionBar();
-    addDefaultPotionEffect(durationMinutes * 60 * 20);
     actionBarUpdateTimer = scheduler.runTaskTimer(this::updateActionBar, 20, 20);
   }
 
@@ -274,16 +273,12 @@ public class PlayerTracking {
       coolDownTimer = null;
     }
     for (var effect : player.getActivePotionEffects()) {
-      player.removePotionEffect(effect.getType());
+      var type = effect.getType();
+      if (type == PotionEffectType.SATURATION) {
+        continue;
+      }
+      player.removePotionEffect(type);
     }
-  }
-
-  void addDefaultPotionEffect(int durationTicks) {
-    if (durationTicks <= 0) {
-      return;
-    }
-    var effect = new PotionEffect(PotionEffectType.SATURATION, durationTicks, 1, false, false);
-    player.addPotionEffect(effect);
   }
 
   private void addInvulnerablePotionEffect(int ticks) {
