@@ -182,7 +182,7 @@ public class Game {
     });
 
     var y = -54;
-    for (int x = -10; x <= -1; x++) {
+    for (int x = -9; x <= -2; x++) {
       spawnParticleAndNext(new Point3i(x, y, -4), false);
       spawnParticleAndNext(new Point3i(x, y, 5), false);
     }
