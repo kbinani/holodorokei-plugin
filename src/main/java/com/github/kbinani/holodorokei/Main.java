@@ -298,10 +298,13 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
 
   @EventHandler
   public void onPlayerPostRespawn(PlayerPostRespawnEvent e) {
+    var player = e.getPlayer();
+    var effect = new PotionEffect(PotionEffectType.SATURATION, 30 * 24 * 60 * 60 * 20, 1, false, false);
+    player.addPotionEffect(effect);
     if (game == null) {
       return;
     }
-    if (e.getPlayer().getWorld() != world) {
+    if (player.getWorld() != world) {
       return;
     }
     game.onPlayerPostRespawn(e);

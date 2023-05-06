@@ -274,7 +274,7 @@ public class PlayerTracking {
     }
     for (var effect : player.getActivePotionEffects()) {
       var type = effect.getType();
-      if (type == PotionEffectType.SATURATION) {
+      if (type.equals(PotionEffectType.SATURATION)) {
         continue;
       }
       player.removePotionEffect(type);
