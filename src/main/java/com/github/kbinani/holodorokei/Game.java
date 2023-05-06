@@ -662,7 +662,7 @@ public class Game implements PlayerTrackingDelegate {
     }
   }
 
-  void onPlayerJoin(PlayerJoinEvent e) {
+  boolean onPlayerJoin(PlayerJoinEvent e) {
     var player = e.getPlayer();
     var id = player.getUniqueId();
     for (var tracking : cops) {
@@ -679,36 +679,36 @@ public class Game implements PlayerTrackingDelegate {
             teleportToPrisonCenter(player);
           }
         }
-        return;
+        return true;
       }
     }
-    for (var tracking : thieves) {
-      if (tracking.player.getUniqueId().equals(id)) {
-        tracking.player = player;
-        for (var effect : player.getActivePotionEffects()) {
-          player.removePotionEffect(effect.getType());
-        }
-        ensurePotionEffects(tracking);
-        giveThieveItems(tracking);
-        return;
+    return false;
+  }
+
+  void onPlayerQuit(PlayerQuitEvent e) {
+    var player = e.getPlayer();
+    var tracking = findPlayer(player, true);
+    if (tracking == null) {
+      for (var effect : player.getActivePotionEffects()) {
+        player.removePotionEffect(effect.getType());
       }
+      return;
     }
-    for (var tracking : prisoners) {
-      if (tracking.player.getUniqueId().equals(id)) {
-        tracking.player = player;
-        for (var effect : player.getActivePotionEffects()) {
-          player.removePotionEffect(effect.getType());
-        }
-        ensurePotionEffects(tracking);
-        giveThieveItems(tracking);
-        if (System.currentTimeMillis() >= startMillis + (long) setting.copInitialDelaySeconds * 1000) {
-          var location = player.getLocation();
-          if (!kPrisonBounds.contains(location.toVector())) {
-            teleportToPrisonCenter(player);
-          }
-        }
-        return;
-      }
+    if (tracking.role != Role.THIEF) {
+      return;
+    }
+    var server = Bukkit.getServer();
+    server.sendMessage(tracking.player.teamDisplayName().append(Component.text("がログアウトしたため棄権扱いとします").color(NamedTextColor.WHITE)));
+    Teams.Instance().thief.removePlayer(tracking.player);
+    Teams.Instance().prisoner.removePlayer(tracking.player);
+    if (!thieves.remove(tracking)) {
+      prisoners.remove(tracking);
+    }
+    for (var effect : player.getActivePotionEffects()) {
+      player.removePotionEffect(effect.getType());
+    }
+    if (thieves.isEmpty()) {
+      finishWithCopWin();
     }
   }
 
@@ -750,20 +750,25 @@ public class Game implements PlayerTrackingDelegate {
     board.update(this);
 
     if (thieves.isEmpty()) {
-      server.sendMessage(Component.empty());
-      server.sendMessage(Component.text("-".repeat(23)));
-      server.sendMessage(Component.text("[結果発表]"));
-      server.sendMessage(Component.text("ドロボウが全員捕まった！"));
-      server.sendMessage(Component.empty());
-      server.sendMessage(Component.text("ケイサツの勝利！"));
-      server.sendMessage(Component.text("-".repeat(23)));
-      server.sendMessage(Component.empty());
+      finishWithCopWin();
+    }
+  }
 
-      terminate();
-      var delegate = this.delegate == null ? null : this.delegate.get();
-      if (delegate != null) {
-        delegate.gameDidFinish();
-      }
+  private void finishWithCopWin() {
+    var server = Bukkit.getServer();
+    server.sendMessage(Component.empty());
+    server.sendMessage(Component.text("-".repeat(23)));
+    server.sendMessage(Component.text("[結果発表]"));
+    server.sendMessage(Component.text("ドロボウが全員捕まった！"));
+    server.sendMessage(Component.empty());
+    server.sendMessage(Component.text("ケイサツの勝利！"));
+    server.sendMessage(Component.text("-".repeat(23)));
+    server.sendMessage(Component.empty());
+
+    terminate();
+    var delegate = this.delegate == null ? null : this.delegate.get();
+    if (delegate != null) {
+      delegate.gameDidFinish();
     }
   }
 

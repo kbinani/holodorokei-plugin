@@ -83,9 +83,22 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       initialized = true;
       getServer().getScheduler().runTaskLater(this, this::setup, 20 * 5);
     }
-    if (game != null && e.getPlayer().getWorld() == world) {
-      game.onPlayerJoin(e);
+    var player = e.getPlayer();
+    if (game != null && player.getWorld() == world) {
+      if (!game.onPlayerJoin(e)) {
+        player.sendMessage(Component.text("途中参加のため運営扱いでの参加となります"));
+        player.setGameMode(GameMode.SPECTATOR);
+        joinAsManager(player);
+      }
     }
+  }
+
+  @EventHandler
+  public void onPlayerQuit(PlayerQuitEvent e) {
+    if (game == null) {
+      return;
+    }
+    game.onPlayerQuit(e);
   }
 
   @EventHandler
