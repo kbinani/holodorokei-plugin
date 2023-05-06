@@ -878,27 +878,23 @@ public class Game {
   }
 
   void onPlayerMove(PlayerMoveEvent e) {
-    Player player = null;
+    Player player = e.getPlayer();
+    var mode = player.getGameMode();
+    if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) {
+      return;
+    }
+    var location = player.getLocation();
+    if (kPrisonBounds.contains(location.toVector())) {
+      return;
+    }
     if (System.currentTimeMillis() < startMillis + (long) setting.copInitialDelaySeconds * 1000) {
-      var cop = findCopPlayer(e.getPlayer());
-      if (cop == null) {
+      if (findCopPlayer(player) == null && findPrisonerPlayer(player) == null) {
         return;
       }
-      var location = cop.player.getLocation();
-      if (kPrisonBounds.contains(location.toVector())) {
-        return;
-      }
-      player = e.getPlayer();
     } else {
-      var prisoner = findPrisonerPlayer(e.getPlayer());
-      if (prisoner == null) {
+      if (findPrisonerPlayer(player) == null) {
         return;
       }
-      var location = prisoner.player.getLocation();
-      if (kPrisonBounds.contains(location.toVector())) {
-        return;
-      }
-      player = e.getPlayer();
     }
     teleportToPrisonCenter(player);
   }
