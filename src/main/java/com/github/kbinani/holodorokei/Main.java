@@ -28,6 +28,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -372,27 +373,30 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
 
   private String[] lookupInvalidServerConfigs() {
     var reasons = new ArrayList<String>();
-    if (Boolean.FALSE.equals(world.getGameRuleValue(GameRule.KEEP_INVENTORY))) {
+    if (!Boolean.TRUE.equals(world.getGameRuleValue(GameRule.KEEP_INVENTORY))) {
       reasons.add("gamerule keepInventory が false になっています。true に設定して下さい");
     }
-    if (Boolean.FALSE.equals(world.getGameRuleValue(GameRule.DO_IMMEDIATE_RESPAWN))) {
+    if (!Boolean.TRUE.equals(world.getGameRuleValue(GameRule.DO_IMMEDIATE_RESPAWN))) {
       reasons.add("gamerule doImmediateRespawn が false になっています。true に設定して下さい");
     }
-    if (Boolean.TRUE.equals(world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES))) {
+    if (!Boolean.FALSE.equals(world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES))) {
       reasons.add("gamerule showDeathMessages が true になっています。false に設定して下さい");
     }
-    if (Boolean.TRUE.equals(world.getGameRuleValue(GameRule.FALL_DAMAGE))) {
+    if (!Boolean.FALSE.equals(world.getGameRuleValue(GameRule.FALL_DAMAGE))) {
       reasons.add("gamerule fallDamage が true になっています。false に設定して下さい");
+    }
+    if (!Boolean.FALSE.equals(world.getGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS))) {
+      reasons.add("gamerule annouceAdvancements が true になっています。false に設定して下さい");
     }
     if (!world.getPVP()) {
       reasons.add("pvp が無効化されています。有効にして下さい");
     }
     var spigot = getServer().spigot();
     var paper = spigot.getPaperConfig();
-    if ("true".equals(paper.get("__________WORLDS__________.__defaults__.hopper.disable-move-event"))) {
+    if (!Boolean.FALSE.equals(paper.get("__________WORLDS__________.__defaults__.hopper.disable-move-event"))) {
       reasons.add("paper の設定項目 hopper.disable-move-event が true になっているため納品ミッションが動作しません。false に設定して下さい");
     }
-    if ("false".equals(paper.get("__________WORLDS__________.__defaults__.scoreboards.allow-non-player-entities-on-scoreboards"))) {
+    if (!Boolean.TRUE.equals(paper.get("__________WORLDS__________.__defaults__.scoreboards.allow-non-player-entities-on-scoreboards"))) {
       reasons.add("paper の設定項目 scoreboards.allow-non-player-entities-on-scoreboards が false になっているためしけ村エリアミッションが動作しません。true に設定して下さい");
     }
     try {
@@ -407,8 +411,10 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
           reasons.add("server.properties の spawn-protection が不正です。スポーン地点付近のアドベンチャーモードのプレイヤーがホロ杖を使えるようにするために spawn-protection=-1 に設定して下さい");
         }
       }
-    } catch (Throwable e) {
+    } catch (IOException e) {
       reasons.add("server.properties が読み込めません");
+    } catch (NumberFormatException e) {
+      reasons.add("server.properties の spawn-protection が不正です。スポーン地点付近のアドベンチャーモードのプレイヤーがホロ杖を使えるようにするために spawn-protection=-1 に設定して下さい");
     }
     return reasons.toArray(new String[0]);
   }
