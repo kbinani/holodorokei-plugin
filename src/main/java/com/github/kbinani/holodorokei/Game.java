@@ -125,7 +125,7 @@ public class Game implements PlayerTrackingDelegate {
   }
 
   void start() {
-    for (var pos : new Point3i[]{kContainerChestDeliveryPost, kContainerHopperDeliveryPost}) {
+    for (var pos : new Point3i[]{kDeliveryPostChestUpper, kDeliveryPostHopper, kDeliveryPostChestLower}) {
       Block block = world.getBlockAt(pos.x, pos.y, pos.z);
       BlockState state = block.getState();
       if (!(state instanceof Container container)) {
@@ -600,10 +600,10 @@ public class Game implements PlayerTrackingDelegate {
     if (source == null || destination == null) {
       return;
     }
-    if (!kContainerChestDeliveryPost.equals(new Point3i(source))) {
+    if (!kDeliveryPostChestUpper.equals(new Point3i(source))) {
       return;
     }
-    if (!kContainerHopperDeliveryPost.equals(new Point3i(destination))) {
+    if (!kDeliveryPostHopper.equals(new Point3i(destination))) {
       return;
     }
     var actual = e.getItem();
@@ -1145,8 +1145,9 @@ public class Game implements PlayerTrackingDelegate {
     }
   }
 
-  private final Point3i kContainerChestDeliveryPost = new Point3i(-5, -60, -25);
-  private final Point3i kContainerHopperDeliveryPost = new Point3i(-5, -61, -25);
+  private final Point3i kDeliveryPostChestUpper = new Point3i(-5, -60, -25);
+  private final Point3i kDeliveryPostHopper = new Point3i(-5, -61, -25);
+  private final Point3i kDeliveryPostChestLower = new Point3i(-5, -62, -25);
   private final String kItemTag = "holodorokei_item";
   private final Point3i kPrisonCenter = new Point3i(-5, -54, 1);
   private final Point3i kEscapeLocation = new Point3i(12, -60, 1);
