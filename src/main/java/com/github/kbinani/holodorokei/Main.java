@@ -64,6 +64,20 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     pluginManager.registerEvents(this, this);
   }
 
+  @Override
+  public void onDisable() {
+    if (game != null) {
+      game.terminate();
+      game = null;
+    }
+    if (setting != null) {
+      setting.reset();
+      setting = new GameSetting();
+    }
+    managers.clear();
+    Teams.Reset();
+  }
+
   @EventHandler
   public void onCreatureSpawn(CreatureSpawnEvent e) {
     if (e.isCancelled()) {
