@@ -179,10 +179,10 @@ public class Game implements PlayerTrackingDelegate {
       p.selectSkill();
       p.start((int) duration);
       teleportToPrisonCenter(p.player);
-      var darknessSeconds = 60;
+      var darknessSeconds = setting.copInitialDelaySeconds;
       var effect = new PotionEffect(PotionEffectType.DARKNESS, darknessSeconds * 20, 1);
       p.player.addPotionEffect(effect);
-      potionsActiveForCopsUntilMillis.put(PotionEffectType.DARKNESS, System.currentTimeMillis() + darknessSeconds * 1000);
+      potionsActiveForCopsUntilMillis.put(PotionEffectType.DARKNESS, System.currentTimeMillis() + (long) darknessSeconds * 1000);
     });
 
     var y = -54;
