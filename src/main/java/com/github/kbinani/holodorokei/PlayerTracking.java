@@ -287,7 +287,7 @@ public class PlayerTracking {
   }
 
   private void addInvulnerablePotionEffect(int ticks) {
-    var effect = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, ticks, 10);
+    var effect = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, ticks, 10, false);
     player.addPotionEffect(effect);
   }
 

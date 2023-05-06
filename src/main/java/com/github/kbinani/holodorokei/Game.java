@@ -180,7 +180,7 @@ public class Game implements PlayerTrackingDelegate {
       p.start((int) duration);
       teleportToPrisonCenter(p.player);
       var darknessSeconds = setting.copInitialDelaySeconds;
-      var effect = new PotionEffect(PotionEffectType.DARKNESS, darknessSeconds * 20, 1);
+      var effect = new PotionEffect(PotionEffectType.DARKNESS, darknessSeconds * 20, 1, false);
       p.player.addPotionEffect(effect);
       potionsActiveForCopsUntilMillis.put(PotionEffectType.DARKNESS, System.currentTimeMillis() + (long) darknessSeconds * 1000);
     });
@@ -832,7 +832,7 @@ public class Game implements PlayerTrackingDelegate {
 
       var ticks = (int) Math.ceil((until - System.currentTimeMillis()) / 1000.0 * 20);
       if (ticks > 0) {
-        var effect = new PotionEffect(result.effectType(), ticks, 1);
+        var effect = new PotionEffect(result.effectType(), ticks, 1, false);
         thieves.forEach(t -> t.player.addPotionEffect(effect));
       }
     } else if (result.target() == EffectTarget.COP) {
@@ -845,7 +845,7 @@ public class Game implements PlayerTrackingDelegate {
 
       var ticks = (int) Math.ceil((until - System.currentTimeMillis()) / 1000.0 * 20);
       if (ticks > 0) {
-        var effect = new PotionEffect(result.effectType(), ticks, 1);
+        var effect = new PotionEffect(result.effectType(), ticks, 1, false);
         Arrays.stream(cops).forEach(t -> t.player.addPotionEffect(effect));
       }
     }
@@ -949,7 +949,7 @@ public class Game implements PlayerTrackingDelegate {
         for (var entry : potionsActiveForThievesUntilMillis.entrySet()) {
           var ticks = (int) Math.ceil((entry.getValue() - now) / 1000.0 * 20);
           if (ticks > 0) {
-            var effect = new PotionEffect(entry.getKey(), ticks, 1);
+            var effect = new PotionEffect(entry.getKey(), ticks, 1, false);
             tracking.player.addPotionEffect(effect);
           }
         }
@@ -958,7 +958,7 @@ public class Game implements PlayerTrackingDelegate {
         for (var entry : potionsActiveForCopsUntilMillis.entrySet()) {
           var ticks = (int) Math.ceil((entry.getValue() - now) / 1000.0 * 20);
           if (ticks > 0) {
-            var effect = new PotionEffect(entry.getKey(), ticks, 1);
+            var effect = new PotionEffect(entry.getKey(), ticks, 1, false);
             tracking.player.addPotionEffect(effect);
           }
         }

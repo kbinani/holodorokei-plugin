@@ -12,7 +12,7 @@ public record Skill(SkillType type, @Nonnull EffectTarget target, int coolDownSe
     if (type == null) {
       return null;
     }
-    return new PotionEffect(type, effectiveTicks(), 1);
+    return new PotionEffect(type, effectiveTicks(), 1, false);
   }
 
   int coolDownTicks() {
