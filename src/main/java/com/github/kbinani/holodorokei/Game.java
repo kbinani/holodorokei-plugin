@@ -45,9 +45,10 @@ public class Game implements PlayerTrackingDelegate {
   private final long duration;
   private final Map<AreaType, BukkitTask> areaMissionStarterTasks = new HashMap<>();
   private @Nullable BukkitTask areaMissionTimeoutTimer;
-  private @Nullable Bar missionBossBar;
+  private @Nullable BossBar missionCopBossBar;
+  private @Nullable BossBar missionOtherBossBar;
   private @Nullable BukkitTask gameTimeoutTimer;
-  private @Nullable Bar mainBossBar;
+  private @Nullable BossBar mainBossBar;
   private @Nullable BukkitTask bossBarsUpdateTimer;
   private long startMillis;
   private final Set<PlayerTracking> thieves = new HashSet<>();
@@ -153,11 +154,14 @@ public class Game implements PlayerTrackingDelegate {
     startMillis = System.currentTimeMillis();
     gameTimeoutTimer = scheduler.runTaskLater(this::timeoutGame, 20 * 60 * duration);
 
-    mainBossBar = new Bar(world, Main.field);
-    mainBossBar.progress(1);
-    mainBossBar.color(BossBar.Color.GREEN);
-    mainBossBar.name(getMainBossBarComponent());
-    mainBossBar.update();
+    var server = Bukkit.getServer();
+    mainBossBar = BossBar.bossBar(getMainBossBarComponent(), 1, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
+    server.getOnlinePlayers().forEach(p -> {
+      if (p.getWorld() != world) {
+        return;
+      }
+      p.showBossBar(mainBossBar);
+    });
 
     bossBarsUpdateTimer = scheduler.runTaskTimer(this::updateBossBars, 20, 20);
 
@@ -330,10 +334,11 @@ public class Game implements PlayerTrackingDelegate {
   }
 
   record ActiveAreaMission(AreaType type, int remainingSeconds) {
-    Component bossBarComponent() {
+    Component bossBarComponent(boolean areaVisible) {
       int minutes = remainingSeconds / 60;
       int seconds = remainingSeconds - 60 * minutes;
-      return Component.text(String.format("エリアミッション（%s）：残り時間：", type.description()))
+      String areaDisplay = areaVisible ? type.description() : "？？？";
+      return Component.text(String.format("エリアミッション（%s）：残り時間：", areaDisplay))
         .append(Component.text(String.format("%d:%02d", minutes, seconds)).color(NamedTextColor.GOLD));
     }
   }
@@ -406,10 +411,21 @@ public class Game implements PlayerTrackingDelegate {
       gameTimeoutTimer.cancel();
       gameTimeoutTimer = null;
     }
-    if (mainBossBar != null) {
-      mainBossBar.cleanup();
-      mainBossBar = null;
-    }
+    var server = Bukkit.getServer();
+    server.getOnlinePlayers().forEach(p -> {
+      if (mainBossBar != null) {
+        p.hideBossBar(mainBossBar);
+      }
+      if (missionCopBossBar != null) {
+        p.hideBossBar(missionCopBossBar);
+      }
+      if (missionOtherBossBar != null) {
+        p.hideBossBar(missionOtherBossBar);
+      }
+    });
+    mainBossBar = null;
+    missionCopBossBar = null;
+    missionOtherBossBar = null;
     if (bossBarsUpdateTimer != null) {
       bossBarsUpdateTimer.cancel();
       bossBarsUpdateTimer = null;
@@ -417,10 +433,6 @@ public class Game implements PlayerTrackingDelegate {
     if (resurrectionCoolDownTimer != null) {
       resurrectionCoolDownTimer.cancel();
       resurrectionCoolDownTimer = null;
-    }
-    if (missionBossBar != null) {
-      missionBossBar.cleanup();
-      missionBossBar = null;
     }
     for (var t : thieves) {
       t.player.getInventory().clear();
@@ -991,17 +1003,19 @@ public class Game implements PlayerTrackingDelegate {
     }
     board.update(this);
 
-    if (missionBossBar != null) {
-      missionBossBar.cleanup();
+    if (missionCopBossBar != null) {
+      hideBossBar(missionCopBossBar);
     }
-    missionBossBar = new Bar(world, Main.field);
-    missionBossBar.color(BossBar.Color.YELLOW);
-    missionBossBar.progress(1);
-    var active = getActiveAreaMission();
-    if (active != null) {
-      missionBossBar.name(active.bossBarComponent());
+    if (missionOtherBossBar != null) {
+      hideBossBar(missionOtherBossBar);
     }
-    missionBossBar.update();
+    missionCopBossBar = BossBar.bossBar(Component.empty(), 1, BossBar.Color.YELLOW, BossBar.Overlay.PROGRESS);
+    missionOtherBossBar = BossBar.bossBar(Component.empty(), 1, BossBar.Color.YELLOW, BossBar.Overlay.PROGRESS);
+    updateBossBars();
+  }
+
+  private void hideBossBar(BossBar bar) {
+    Bukkit.getServer().getOnlinePlayers().forEach(p -> p.hideBossBar(bar));
   }
 
   private void sendMissionStartMessage(Player p, String missionName) {
@@ -1037,10 +1051,16 @@ public class Game implements PlayerTrackingDelegate {
     server.sendMessage(Component.text(String.format("[エリアミッション（%s）成功！]", type.description())));
     server.sendMessage(Component.text("-".repeat(23)));
     board.update(this);
-    if (missionBossBar != null) {
-      missionBossBar.cleanup();
-      missionBossBar = null;
-    }
+    server.getOnlinePlayers().forEach(p -> {
+      if (missionCopBossBar != null) {
+        p.hideBossBar(missionCopBossBar);
+      }
+      if (missionOtherBossBar != null) {
+        p.hideBossBar(missionOtherBossBar);
+      }
+    });
+    missionCopBossBar = null;
+    missionOtherBossBar = null;
   }
 
   private void abortAreaMission(AreaType type) {
@@ -1074,10 +1094,16 @@ public class Game implements PlayerTrackingDelegate {
     server.sendMessage(Component.text(String.format("【%s】エリアが10秒後に封鎖されます！", type.description())));
     server.sendMessage(Component.text("-".repeat(23)));
     board.update(this);
-    if (missionBossBar != null) {
-      missionBossBar.cleanup();
-      missionBossBar = null;
-    }
+    server.getOnlinePlayers().forEach(p -> {
+      if (missionCopBossBar != null) {
+        p.hideBossBar(missionCopBossBar);
+      }
+      if (missionOtherBossBar != null) {
+        p.hideBossBar(missionOtherBossBar);
+      }
+    });
+    missionCopBossBar = null;
+    missionOtherBossBar = null;
     for (var area : areas) {
       if (area.type() == type) {
         area.scheduleShutout();
@@ -1130,17 +1156,41 @@ public class Game implements PlayerTrackingDelegate {
   }
 
   private void updateBossBars() {
+    var server = Bukkit.getServer();
     if (mainBossBar != null) {
       mainBossBar.name(getMainBossBarComponent());
       mainBossBar.progress(getRemainingGameSeconds() / (float) (duration * 60));
-      mainBossBar.update();
+      server.getOnlinePlayers().forEach(p -> {
+        if (p.getWorld() == world) {
+          p.showBossBar(mainBossBar);
+        } else {
+          p.hideBossBar(mainBossBar);
+        }
+      });
     }
-    if (missionBossBar != null) {
-      var active = getActiveAreaMission();
-      if (active != null) {
-        missionBossBar.name(active.bossBarComponent());
-        missionBossBar.progress(active.remainingSeconds / (float) (3 * 60));
-        missionBossBar.update();
+    var active = getActiveAreaMission();
+    if (active != null) {
+      server.getOnlinePlayers().forEach(p -> {
+        if (p.getWorld() != world) {
+          return;
+        }
+        if ((femaleExecutive != null && femaleExecutive.player == p) || (researcher != null && researcher.player == p) || (cleaner != null && cleaner.player == p)) {
+          if (missionCopBossBar != null) {
+            p.showBossBar(missionCopBossBar);
+          }
+        } else {
+          if (missionOtherBossBar != null) {
+            p.showBossBar(missionOtherBossBar);
+          }
+        }
+      });
+      if (missionCopBossBar != null) {
+        missionCopBossBar.name(active.bossBarComponent(false));
+        missionCopBossBar.progress(active.remainingSeconds / (float) (3 * 60));
+      }
+      if (missionOtherBossBar != null) {
+        missionOtherBossBar.name(active.bossBarComponent(true));
+        missionOtherBossBar.progress(active.remainingSeconds / (float) (3 * 60));
       }
     }
   }
