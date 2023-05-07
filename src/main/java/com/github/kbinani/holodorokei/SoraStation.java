@@ -100,13 +100,6 @@ public class SoraStation extends Area {
     void start(World world) {
       for (int x : new int[]{-32, -34, -36, -38, -40}) {
         world.setBlockData(x, -48, -59, Material.AIR.createBlockData());
-
-        world.setBlockData(x, -49, -57, Material.BIRCH_WALL_SIGN.createBlockData("[facing=south]"));
-        var block = world.getBlockAt(x, -49, -57);
-        if (block.getState() instanceof Sign sign) {
-          sign.line(1, Component.text("[看板を右クリック]").decorate(TextDecoration.BOLD));
-          sign.update();
-        }
       }
 
       world.setBlockData(-36, -48, -61, Material.BIRCH_WALL_SIGN.createBlockData("[facing=north]"));
@@ -123,7 +116,6 @@ public class SoraStation extends Area {
     void cleanup(World world) {
       for (int x : new int[]{-32, -34, -36, -38, -40}) {
         world.setBlockData(x, -48, -59, Material.AIR.createBlockData());
-        world.setBlockData(x, -49, -57, Material.AIR.createBlockData());
       }
 
       world.setBlockData(-36, -48, -61, Material.AIR.createBlockData());
@@ -266,5 +258,27 @@ public class SoraStation extends Area {
   @Override
   BoundingBox bounds() {
     return new BoundingBox(-92, -63, -91, -22, 384, -16);
+  }
+
+  @Override
+  void start(UUID sessionId) {
+    super.start(sessionId);
+
+    for (int x : new int[]{-32, -34, -36, -38, -40}) {
+      world.setBlockData(x, -49, -57, Material.BIRCH_WALL_SIGN.createBlockData("[facing=south]"));
+      var block = world.getBlockAt(x, -49, -57);
+      if (block.getState() instanceof Sign sign) {
+        sign.line(1, Component.text("[看板を右クリック]").decorate(TextDecoration.BOLD));
+        sign.update();
+      }
+    }
+  }
+
+  @Override
+  void cleanup() {
+    super.cleanup();
+    for (int x : new int[]{-32, -34, -36, -38, -40}) {
+      world.setBlockData(x, -49, -57, Material.AIR.createBlockData());
+    }
   }
 }
