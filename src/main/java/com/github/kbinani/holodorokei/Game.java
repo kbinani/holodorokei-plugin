@@ -18,6 +18,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
@@ -697,6 +698,25 @@ public class Game implements PlayerTrackingDelegate {
     }
     if (thieves.isEmpty()) {
       finishWithCopWin();
+    }
+  }
+
+  void onEntityDropItem(EntityDropItemEvent e) {
+    if (!(e.getEntity() instanceof Sheep)) {
+      return;
+    }
+    var item = e.getItemDrop();
+    var stack = item.getItemStack();
+    if (stack.getType() != Material.LEAD) {
+      return;
+    }
+    for (var area : areas) {
+      if (area.type() == AreaType.DODODO_TOWN) {
+        if (area.missionStarted && area.missionFinished) {
+          item.remove();
+          break;
+        }
+      }
     }
   }
 

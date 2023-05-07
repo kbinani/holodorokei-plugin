@@ -18,6 +18,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.PluginManager;
@@ -280,6 +281,14 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       return;
     }
     game.onPlayerPostRespawn(e);
+  }
+
+  @EventHandler
+  public void onEntityDropItem(EntityDropItemEvent e) {
+    if (game == null) {
+      return;
+    }
+    game.onEntityDropItem(e);
   }
 
   private void setup() {
