@@ -2,6 +2,7 @@ package com.github.kbinani.holodorokei;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -105,7 +106,13 @@ public class PlayerTracking {
     } else if (role == Role.FEMALE_EXECUTIVE) {
       message = message.append(Component.text("特殊能力：女幹部").color(NamedTextColor.DARK_PURPLE));
     } else if (role == Role.THIEF) {
-      message = message.append(Component.text(String.format("特殊能力：%s", skill.type().description())).color(NamedTextColor.BLUE));
+      TextColor color;
+      if (skill.target() == EffectTarget.SELF) {
+        color = NamedTextColor.RED;
+      } else {
+        color = NamedTextColor.BLUE;
+      }
+      message = message.append(Component.text(String.format("特殊能力：%s", skill.type().description())).color(color));
     }
     message = message.append(Component.text(" を発動！").color(NamedTextColor.WHITE));
     player.sendMessage(message);
