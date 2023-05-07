@@ -273,11 +273,7 @@ public class PlayerTracking {
       coolDownTimer = null;
     }
     for (var effect : player.getActivePotionEffects()) {
-      var type = effect.getType();
-      if (type.equals(PotionEffectType.SATURATION)) {
-        continue;
-      }
-      player.removePotionEffect(type);
+      player.removePotionEffect(effect.getType());
     }
   }
 
