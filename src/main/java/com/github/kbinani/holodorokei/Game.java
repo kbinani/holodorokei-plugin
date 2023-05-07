@@ -157,9 +157,6 @@ public class Game implements PlayerTrackingDelegate {
     var server = Bukkit.getServer();
     mainBossBar = BossBar.bossBar(getMainBossBarComponent(), 1, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
     server.getOnlinePlayers().forEach(p -> {
-      if (p.getWorld() != world) {
-        return;
-      }
       p.showBossBar(mainBossBar);
     });
 
@@ -329,9 +326,6 @@ public class Game implements PlayerTrackingDelegate {
   @Override
   public void playerTrackingDidUseSkill(Component message) {
     Bukkit.getServer().getOnlinePlayers().forEach(p -> {
-      if (p.getWorld() != world) {
-        return;
-      }
       var tracking = findPlayer(p, true);
       if (tracking == null) {
         p.sendMessage(message);
@@ -404,9 +398,6 @@ public class Game implements PlayerTrackingDelegate {
     prisoners.forEach(p -> Teams.Instance().prisoner.removePlayer(p.player));
     Arrays.stream(cops).forEach(p -> Teams.Instance().cop.removePlayer(p.player));
     server.getOnlinePlayers().forEach(p -> {
-      if (p.getWorld() != world) {
-        return;
-      }
       Teams.Instance().manager.removePlayer(p);
     });
     for (var area : areas) {
@@ -1161,20 +1152,11 @@ public class Game implements PlayerTrackingDelegate {
     if (mainBossBar != null) {
       mainBossBar.name(getMainBossBarComponent());
       mainBossBar.progress(getRemainingGameSeconds() / (float) (duration * 60));
-      server.getOnlinePlayers().forEach(p -> {
-        if (p.getWorld() == world) {
-          p.showBossBar(mainBossBar);
-        } else {
-          p.hideBossBar(mainBossBar);
-        }
-      });
+      server.getOnlinePlayers().forEach(p -> p.showBossBar(mainBossBar));
     }
     var active = getActiveAreaMission();
     if (active != null) {
       server.getOnlinePlayers().forEach(p -> {
-        if (p.getWorld() != world) {
-          return;
-        }
         if ((femaleExecutive != null && femaleExecutive.player == p) || (researcher != null && researcher.player == p) || (cleaner != null && cleaner.player == p)) {
           if (missionCopBossBar != null) {
             p.showBossBar(missionCopBossBar);

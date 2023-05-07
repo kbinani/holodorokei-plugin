@@ -16,9 +16,6 @@ public class Players {
   public static void Within(World world, BoundingBox[] boxes, Consumer<Player> callback) {
     Server server = Bukkit.getServer();
     server.getOnlinePlayers().forEach(player -> {
-      if (player.getWorld() != world) {
-        return;
-      }
       Vector location = player.getLocation().toVector();
       for (BoundingBox box : boxes) {
         if (box.contains(location)) {

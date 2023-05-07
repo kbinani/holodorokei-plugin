@@ -29,7 +29,10 @@ import org.bukkit.util.BoundingBox;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 
 public class Main extends JavaPlugin implements Listener, GameDelegate {
@@ -43,13 +46,19 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
   @Override
   public void onEnable() {
     var logger = getLogger();
-    Optional<World> overworld = getServer().getWorlds().stream().filter(it -> it.getEnvironment() == World.Environment.NORMAL).findFirst();
-    if (overworld.isEmpty()) {
-      logger.log(Level.SEVERE, "server should have at least one overworld dimension");
+    var worlds = getServer().getWorlds();
+    if (worlds.size() != 1) {
+      logger.log(Level.SEVERE, "このプラグインはディメンジョンが複数存在するサーバーをサポートしていません");
       setEnabled(false);
       return;
     }
-    world = overworld.get();
+    World overworld = worlds.get(0);
+    if (overworld.getEnvironment() != World.Environment.NORMAL) {
+      logger.log(Level.SEVERE, "このプラグインはオーバーワールド以外のディメンジョンをサポートしていません");
+      setEnabled(false);
+      return;
+    }
+    world = overworld;
 
     var reasons = lookupInvalidServerConfigs();
     if (reasons.length > 0) {
@@ -85,9 +94,6 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (e.isCancelled()) {
       return;
     }
-    if (e.getEntity().getWorld() != world) {
-      return;
-    }
     switch (e.getSpawnReason()) {
       case NATURAL, VILLAGE_INVASION, BUILD_WITHER, BUILD_IRONGOLEM, BUILD_SNOWMAN, SPAWNER -> e.setCancelled(true);
     }
@@ -100,7 +106,7 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       getServer().getScheduler().runTaskLater(this, this::setup, 20 * 5);
     }
     var player = e.getPlayer();
-    if (game != null && player.getWorld() == world) {
+    if (game != null) {
       if (!game.onPlayerJoin(e)) {
         player.sendMessage(Component.text("途中参加のため運営扱いでの参加となります"));
         player.setGameMode(GameMode.SPECTATOR);
@@ -125,9 +131,6 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
   @EventHandler
   public void onPlayerInteract(PlayerInteractEvent e) {
     Player player = e.getPlayer();
-    if (player.getWorld() != world) {
-      return;
-    }
     if (game != null) {
       game.onPlayerInteract(e);
     }
@@ -209,18 +212,12 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       return;
     }
     var entity = e.getEntity();
-    if (entity.getWorld() != world) {
-      return;
-    }
     game.onEntityMove(e);
   }
 
   @EventHandler
   public void onPlayerToggleSneak(PlayerToggleSneakEvent e) {
     if (game == null) {
-      return;
-    }
-    if (e.getPlayer().getWorld() != world) {
       return;
     }
     game.onPlayerToggleSneak(e);
@@ -231,18 +228,12 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (game == null) {
       return;
     }
-    if (e.getPlayer().getWorld() != world) {
-      return;
-    }
     game.onBlockBreak(e);
   }
 
   @EventHandler
   public void onBlockDropItem(BlockDropItemEvent e) {
     if (game == null) {
-      return;
-    }
-    if (e.getPlayer().getWorld() != world) {
       return;
     }
     game.onBlockDropItem(e);
@@ -253,18 +244,12 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (game == null) {
       return;
     }
-    if (e.getPlayer().getWorld() != world) {
-      return;
-    }
     game.onPlayerItemDamage(e);
   }
 
   @EventHandler
   public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
     if (game == null) {
-      return;
-    }
-    if (e.getEntity().getWorld() != world) {
       return;
     }
     game.onEntityDamageByEntity(e);
@@ -275,22 +260,12 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (game == null) {
       return;
     }
-    var location = e.getDestination().getLocation();
-    if (location == null) {
-      return;
-    }
-    if (location.getWorld() != world) {
-      return;
-    }
     game.onInventoryMoveItem(e);
   }
 
   @EventHandler
   public void onPlayerMove(PlayerMoveEvent e) {
     if (game == null) {
-      return;
-    }
-    if (e.getPlayer().getWorld() != world) {
       return;
     }
     game.onPlayerMove(e);
@@ -302,9 +277,6 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     var effect = new PotionEffect(PotionEffectType.SATURATION, 30 * 24 * 60 * 60 * 20, 1, false, false);
     player.addPotionEffect(effect);
     if (game == null) {
-      return;
-    }
-    if (player.getWorld() != world) {
       return;
     }
     game.onPlayerPostRespawn(e);
