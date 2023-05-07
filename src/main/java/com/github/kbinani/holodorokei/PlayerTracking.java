@@ -254,7 +254,7 @@ public class PlayerTracking {
     actionBarUpdateTimer = scheduler.runTaskTimer(this::updateActionBar, 20, 20);
   }
 
-  void start(int durationMinutes) {
+  void start() {
     updateActionBar();
     actionBarUpdateTimer = scheduler.runTaskTimer(this::updateActionBar, 20, 20);
   }

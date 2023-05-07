@@ -170,12 +170,12 @@ public class Game implements PlayerTrackingDelegate {
 
     thieves.forEach(p -> {
       giveThieveItems(p);
-      p.start((int) duration);
+      p.start();
     });
     Arrays.stream(cops).forEach(p -> {
       giveCopItems(p);
       p.selectSkill();
-      p.start((int) duration);
+      p.start();
       teleportToPrisonCenter(p.player);
       var darknessSeconds = setting.copInitialDelaySeconds;
       var effect = new PotionEffect(PotionEffectType.DARKNESS, darknessSeconds * 20, 1, false);
