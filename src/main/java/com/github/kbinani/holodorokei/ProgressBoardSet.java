@@ -89,9 +89,7 @@ public class ProgressBoardSet {
         var line = "└" + prefix + "？？？：" + mission.status().description();
         thief.add(line);
         cop.add(line);
-        //NOTE: 本物は運営はドロボウ・ケイサツと同じのを表示している.
-        // けど実際運用する場合は次起こるミッションが見られたほうがいいはず
-        manager.add("└" + prefix + mission.type().description() + "：" + mission.status().description());
+        manager.add(line);
       }
     }
 
