@@ -3,8 +3,7 @@ package com.github.kbinani.holodorokei;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -147,9 +146,8 @@ public class SoraStation extends Area {
       if (member == null) {
         return false;
       }
-      e.setCancelled(true);
+      var player = e.getPlayer();
       if (shutdownScheduled) {
-        var player = e.getPlayer();
         player.sendMessage(Component.text(String.format("%sのボタンがある。今は何も起こらないようだ...", member.color())));
         return false;
       }
@@ -158,6 +156,10 @@ public class SoraStation extends Area {
         clicked.add(member);
         World world = e.getPlayer().getWorld();
         world.setBlockData(-40 + 2 * index, -48, -59, Material.REDSTONE_BLOCK.createBlockData());
+
+        // {6, 8, 10, 11, 13} = 5 + A000210
+        int note = 5 + (int) Math.floor(clicked.size() * (Math.E - 1));
+        player.playNote(player.getLocation(), Instrument.BIT, new Note(note));
       }
       for (int i = 0; i < clickOrder.size() - 4; i++) {
         boolean ok = true;
@@ -168,6 +170,7 @@ public class SoraStation extends Area {
           }
         }
         if (ok) {
+          player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
           return true;
         }
       }
@@ -178,6 +181,7 @@ public class SoraStation extends Area {
         for (int xx : new int[]{-32, -34, -36, -38, -40}) {
           world.setBlockData(xx, -48, -59, Material.AIR.createBlockData());
         }
+        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
       }
       return false;
     }
