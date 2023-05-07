@@ -23,6 +23,7 @@ import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -281,6 +282,7 @@ public class Game implements PlayerTrackingDelegate {
     var potionMeta = potion.getItemMeta();
     if (potionMeta != null) {
       potionMeta.displayName(Component.text("自首用ポーション"));
+      potionMeta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
       potion.setItemMeta(potionMeta);
     }
     inventory.setItem(2, potion);
@@ -304,6 +306,7 @@ public class Game implements PlayerTrackingDelegate {
     var potionMeta = potion.getItemMeta();
     if (potionMeta != null) {
       potionMeta.displayName(Component.text("自首用ポーション"));
+      potionMeta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
       potion.setItemMeta(potionMeta);
     }
     inventory.setItem(1, potion);
