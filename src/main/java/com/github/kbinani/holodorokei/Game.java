@@ -614,10 +614,10 @@ public class Game implements PlayerTrackingDelegate {
     if (source == null || destination == null) {
       return;
     }
-    if (!kDeliveryPostChestUpper.equals(new Point3i(source))) {
+    if (!kDeliveryPostHopper.equals(new Point3i(source))) {
       return;
     }
-    if (!kDeliveryPostHopper.equals(new Point3i(destination))) {
+    if (!kDeliveryPostChestLower.equals(new Point3i(destination))) {
       return;
     }
     var actual = e.getItem();
