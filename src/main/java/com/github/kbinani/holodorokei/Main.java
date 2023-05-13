@@ -370,7 +370,7 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       server.sendMessage(Component.text(String.format("ゲームを開始できません。理由: %s", reason)).color(NamedTextColor.RED));
       return;
     }
-    game = new Game(scheduler, world, setting);
+    game = new Game(scheduler, world, setting, getLogger());
     game.delegate = new WeakReference<>(this);
     this.setting = new GameSetting();
     server.sendMessage(Component.empty());

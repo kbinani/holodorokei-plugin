@@ -13,6 +13,8 @@ import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.security.SecureRandom;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PlayerTracking {
   Player player;
@@ -27,14 +29,17 @@ public class PlayerTracking {
   private long resurrectionTimeoutMillis;
   private boolean arrested = false;
   private final WeakReference<PlayerTrackingDelegate> delegate;
+  private final Logger logger;
 
   static Random sRandom = null;
 
-  PlayerTracking(Player player, Role role, @Nonnull Scheduler scheduler, @Nonnull PlayerTrackingDelegate delegate) {
+  PlayerTracking(Player player, Role role, @Nonnull Scheduler scheduler, @Nonnull PlayerTrackingDelegate delegate, Logger parent) {
     this.player = player;
     this.role = role;
     this.scheduler = scheduler;
     this.delegate = new WeakReference<>(delegate);
+    this.logger = Logger.getLogger(parent.getName() + "(" + role.name() + "," + player.getName() + ")");
+    this.logger.setParent(parent);
   }
 
   void selectSkill() {
@@ -43,30 +48,42 @@ public class PlayerTracking {
         var candidate = new SkillType[]{SkillType.JUMP_BOOST, SkillType.SPEED, SkillType.INVISIBILITY};
         var type = candidate[getRandomInt(candidate.length)];
         var target = type.target(role);
-        if (target != null) {
+        if (target == null) {
+          logger.log(Level.WARNING, "select skill: " + type.description() + "; target cannot be identified");
+        } else {
           this.skill = new Skill(type, target, type.coolDownSeconds(role), type.effectiveSeconds(role));
+          logger.log(Level.INFO, "select skill: " + type.description());
         }
       }
       case THIEF -> {
         var candidate = new SkillType[]{SkillType.JUMP_BOOST, SkillType.INVULNERABLE, SkillType.SPEED, SkillType.DARKNESS, SkillType.SLOWNESS, SkillType.COP_FINDER};
         var type = candidate[getRandomInt(candidate.length)];
         var target = type.target(role);
-        if (target != null) {
+        if (target == null) {
+          logger.log(Level.WARNING, "select skill: " + type.description() + "; target cannot be identified");
+        } else {
           this.skill = new Skill(type, target, type.coolDownSeconds(role), type.effectiveSeconds(role));
+          logger.log(Level.INFO, "select skill: " + type.description());
         }
       }
       case FEMALE_EXECUTIVE -> {
         var type = SkillType.THIEF_FINDER;
         var target = type.target(role);
-        if (target != null) {
+        if (target == null) {
+          logger.log(Level.WARNING, "select skill: " + type.description() + "; target cannot be identified");
+        } else {
           this.skill = new Skill(type, target, type.coolDownSeconds(role), type.effectiveSeconds(role));
+          logger.log(Level.INFO, "select skill: " + type.description());
         }
       }
       case CLEANER -> {
         var type = SkillType.INVISIBILITY;
         var target = type.target(role);
-        if (target != null) {
+        if (target == null) {
+          logger.log(Level.WARNING, "select skill: " + type.description() + "; target cannot be identified");
+        } else {
           this.skill = new Skill(type, target, type.coolDownSeconds(role), type.effectiveSeconds(role));
+          logger.log(Level.INFO, "select skill: " + type.description());
         }
       }
     }
@@ -78,18 +95,22 @@ public class PlayerTracking {
 
   @Nullable
   SkillActivationResult tryActivatingSkill(boolean shortened) {
+    final String logTitle = "try activating skill: ";
     if (role == Role.CLEANER) {
       //NOTE: 掃除屋はホロ杖の効果を起動させない
       return null;
     }
     if (activeSkillType != null) {
+      logger.log(Level.WARNING, logTitle + "skip, activeSkillType not null");
       return null;
     }
     if (coolDownTimer != null) {
+      logger.log(Level.WARNING, logTitle + "skip, coolDownTimer not null");
       return null;
     }
     var skill = this.skill;
     if (skill == null) {
+      logger.log(Level.WARNING, logTitle + "skip, skill is null");
       return null;
     }
     activeSkillType = skill.type();
@@ -116,6 +137,7 @@ public class PlayerTracking {
     }
     message = message.append(Component.text(" を発動！").color(NamedTextColor.WHITE));
     player.sendMessage(message);
+    logger.log(Level.INFO, logTitle + "activating skill: " + skill.type().description() + ", cooldown " + coolDownMillis + "ms");
     var delegate = this.delegate.get();
     if (delegate != null) {
       delegate.playerTrackingDidUseSkill(message);
@@ -159,6 +181,7 @@ public class PlayerTracking {
       if (type != null && activeSkillType.target(role) == EffectTarget.SELF) {
         player.removePotionEffect(type);
       }
+      logger.log(Level.INFO, "deactivate skill: " + activeSkillType.description());
       activeSkillType = null;
     }
   }
@@ -173,6 +196,7 @@ public class PlayerTracking {
     var effect = this.skill.createPotionEffect();
     assert (effect != null);
     player.addPotionEffect(effect);
+    logger.log(Level.INFO, "activate skill: " + this.skill.type().description());
   }
 
   boolean isInvulnerable() {
@@ -183,6 +207,7 @@ public class PlayerTracking {
   }
 
   void depriveSkill() {
+    logger.log(Level.INFO, "deprive skill");
     if (coolDownTimer != null) {
       coolDownTimer.cancel();
       coolDownTimer = null;
@@ -204,8 +229,10 @@ public class PlayerTracking {
   }
 
   private void onCoolDown() {
+    var before = activeSkillType;
     activeSkillType = null;
     coolDownTimer = null;
+    logger.log(Level.INFO, "on cooldown skill: " + (before == null ? "N/A" : before.description()));
     if (role == Role.RESEARCHER) {
       selectSkill();
     }
@@ -264,6 +291,7 @@ public class PlayerTracking {
   void start() {
     updateActionBar();
     actionBarUpdateTimer = scheduler.runTaskTimer(this::updateActionBar, 20, 20);
+    logger.log(Level.INFO, "start");
   }
 
   void cleanup() {
@@ -282,16 +310,19 @@ public class PlayerTracking {
     for (var effect : player.getActivePotionEffects()) {
       player.removePotionEffect(effect.getType());
     }
+    logger.log(Level.INFO, "cleanup");
   }
 
   private void addInvulnerablePotionEffect(int ticks) {
     var effect = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, ticks, 10, false);
     player.addPotionEffect(effect);
+    logger.log(Level.INFO, "add invulnerable potion effect");
   }
 
   void addInvulnerableByResurrection(int seconds) {
     resurrectionTimeoutMillis = System.currentTimeMillis() + (long) seconds * 1000;
     addInvulnerablePotionEffect(seconds * 20);
+    logger.log(Level.INFO, "add invulnerable by resurrection");
   }
 
   void setArrested(boolean arrested) {
@@ -299,6 +330,7 @@ public class PlayerTracking {
       return;
     }
     this.arrested = arrested;
+    logger.log(Level.INFO, "arrested: " + arrested);
   }
 
   boolean isArrested() {

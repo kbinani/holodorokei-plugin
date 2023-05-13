@@ -37,6 +37,8 @@ import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Game implements PlayerTrackingDelegate {
   public @Nullable WeakReference<GameDelegate> delegate;
@@ -70,13 +72,14 @@ public class Game implements PlayerTrackingDelegate {
   private final Map<PotionEffectType, Long> potionsActiveForCopsUntilMillis = new HashMap<>();
   private final Map<PotionEffectType, Long> potionsActiveForThievesUntilMillis = new HashMap<>();
   private final Map<Point3i, BukkitTask> witchParticleTimers = new HashMap<>();
+  private final Logger logger;
 
   private final AreaMissionStatus[] areaMissions;
   private final Map<AreaType, Boolean> deliveryMissions;
 
   private static Random sRandom = null;
 
-  Game(Scheduler scheduler, World world, GameSetting setting) {
+  Game(Scheduler scheduler, World world, GameSetting setting, Logger parent) {
     this.world = world;
     this.setting = setting;
     var soraStation = new SoraStation(world, scheduler);
@@ -92,6 +95,9 @@ public class Game implements PlayerTrackingDelegate {
     this.duration = setting.duration;
     this.scheduler = scheduler;
     this.sessionId = UUID.randomUUID();
+    this.logger = Logger.getLogger("holodorokei." + this.sessionId);
+    this.logger.setParent(parent);
+    this.logger.info("constructor");
 
     record Entry(AreaType type, int minutes) {
       AreaMissionStatus toStatus() {
@@ -109,11 +115,11 @@ public class Game implements PlayerTrackingDelegate {
     this.areaMissions = areaMissions.stream().map(Entry::toStatus).toList().toArray(new AreaMissionStatus[]{});
 
     for (var p : setting.thieves) {
-      thieves.add(new PlayerTracking(p, Role.THIEF, scheduler, this));
+      thieves.add(new PlayerTracking(p, Role.THIEF, scheduler, this, logger));
     }
-    femaleExecutive = setting.femaleExecutive == null ? null : new PlayerTracking(setting.femaleExecutive, Role.FEMALE_EXECUTIVE, scheduler, this);
-    researcher = setting.researcher == null ? null : new PlayerTracking(setting.researcher, Role.RESEARCHER, scheduler, this);
-    cleaner = setting.cleaner == null ? null : new PlayerTracking(setting.cleaner, Role.CLEANER, scheduler, this);
+    femaleExecutive = setting.femaleExecutive == null ? null : new PlayerTracking(setting.femaleExecutive, Role.FEMALE_EXECUTIVE, scheduler, this, logger);
+    researcher = setting.researcher == null ? null : new PlayerTracking(setting.researcher, Role.RESEARCHER, scheduler, this, logger);
+    cleaner = setting.cleaner == null ? null : new PlayerTracking(setting.cleaner, Role.CLEANER, scheduler, this, logger);
     var cops = new ArrayList<PlayerTracking>();
     if (femaleExecutive != null) {
       cops.add(femaleExecutive);
@@ -128,6 +134,15 @@ public class Game implements PlayerTrackingDelegate {
   }
 
   void start() {
+    logger.info("start");
+    logger.info("participants:");
+    logger.info("  female executive: " + (femaleExecutive == null ? "N/A" : femaleExecutive.player.getName()));
+    logger.info("  researcher: " + (researcher == null ? "N/A" : researcher.player.getName()));
+    logger.info("  cleaner: " + (cleaner == null ? "N/A" : cleaner.player.getName()));
+    logger.info("  thieves:");
+    for (var p : thieves) {
+      logger.info("    " + p.player.getName());
+    }
     for (var pos : new Point3i[]{kDeliveryPostChestUpper, kDeliveryPostHopper, kDeliveryPostChestLower}) {
       Block block = world.getBlockAt(pos.x, pos.y, pos.z);
       BlockState state = block.getState();
@@ -728,6 +743,7 @@ public class Game implements PlayerTrackingDelegate {
       e.setDamage(0);
       return;
     }
+    logger.log(Level.INFO, "thief " + thief.player.getName() + " damage by zombie");
     arrest(thief);
   }
 
@@ -736,6 +752,7 @@ public class Game implements PlayerTrackingDelegate {
       e.setDamage(0);
       return;
     }
+    logger.log(Level.INFO, "thief " + thief.player.getName() + " damage by cop " + cop.player.getName());
     arrest(thief);
   }
 
@@ -785,16 +802,21 @@ public class Game implements PlayerTrackingDelegate {
 
   private void zombieDamageByThief(Zombie zombie, PlayerTracking thief, EntityDamageByEntityEvent e) {
     zombie.remove();
+    logger.log(Level.INFO, "zombie damage by thief " + thief.player.getName());
   }
 
   private void prisonerDamageByThief(PlayerTracking prisoner, PlayerTracking thief, EntityDamageByEntityEvent e) {
+    final String title = "prisoner " + prisoner.player.getName() + " damage by thief " + thief.player.getName();
     if (System.currentTimeMillis() < resurrectionCoolDownMillis) {
+      logger.log(Level.INFO, title + " cancel, during resurrection cooldown");
       return;
     }
     if (katsumokuActivated) {
+      logger.log(Level.INFO, title + " cancel, during final skill");
       return;
     }
     e.setDamage(0);
+    logger.log(Level.INFO, title + " resurrection success");
 
     var server = Bukkit.getServer();
     var component = prisoner.player.teamDisplayName().append(Component.text("が逃げ出した！").color(NamedTextColor.WHITE));
@@ -830,6 +852,7 @@ public class Game implements PlayerTrackingDelegate {
       resurrectionMainBarUpdateTimer.cancel();
       resurrectionMainBarUpdateTimer = null;
     }
+    logger.log(Level.INFO, "on cooldown resurrection");
   }
 
   private void applyPotionEffect(PlayerTracking.SkillActivationResult result) {
@@ -846,6 +869,7 @@ public class Game implements PlayerTrackingDelegate {
         var effect = new PotionEffect(result.effectType(), ticks, 1, false);
         thieves.forEach(t -> t.player.addPotionEffect(effect));
       }
+      logger.log(Level.INFO, "apply potion effect " + result.effectType().getName() + " to thief");
     } else if (result.target() == EffectTarget.COP) {
       long until = result.activeUntilMillis();
       var current = potionsActiveForCopsUntilMillis.get(result.effectType());
@@ -859,6 +883,7 @@ public class Game implements PlayerTrackingDelegate {
         var effect = new PotionEffect(result.effectType(), ticks, 1, false);
         Arrays.stream(cops).forEach(t -> t.player.addPotionEffect(effect));
       }
+      logger.log(Level.INFO, "apply potion effect " + result.effectType().getName() + " to cop");
     }
   }
 
