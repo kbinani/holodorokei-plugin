@@ -434,6 +434,9 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     if (!Boolean.TRUE.equals(world.getGameRuleValue(GameRule.KEEP_INVENTORY))) {
       reasons.add("gamerule keepInventory が false になっています。true に設定して下さい");
     }
+    if (!Boolean.TRUE.equals(world.getGameRuleValue(GameRule.DO_IMMEDIATE_RESPAWN))) {
+      reasons.add("gamerule doImmediateRespawn が false になっています。true に設定して下さい");
+    }
     if (!Boolean.FALSE.equals(world.getGameRuleValue(GameRule.SHOW_DEATH_MESSAGES))) {
       reasons.add("gamerule showDeathMessages が true になっています。false に設定して下さい");
     }
