@@ -292,6 +292,8 @@ public class PlayerTracking {
   void start() {
     updateActionBar();
     actionBarUpdateTimer = scheduler.runTaskTimer(this::updateActionBar, 20, 20);
+    player.setFoodLevel(20);
+    player.setHealth(20);
     logger.log(Level.INFO, "start");
   }
 
