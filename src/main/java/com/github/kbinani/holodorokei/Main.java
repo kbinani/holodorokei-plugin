@@ -107,6 +107,7 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       getServer().getScheduler().runTaskLater(this, this::setup, 20 * 5);
     }
     var player = e.getPlayer();
+    player.getInventory().clear();
     if (game != null) {
       if (!game.onPlayerJoin(e)) {
         player.sendMessage(Component.text("途中参加のため運営扱いでの参加となります"));
