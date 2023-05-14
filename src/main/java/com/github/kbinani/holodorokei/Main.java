@@ -108,15 +108,15 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
     }
     var player = e.getPlayer();
     player.getInventory().clear();
+    for (var effect : player.getActivePotionEffects()) {
+      player.removePotionEffect(effect.getType());
+    }
     if (game != null) {
       if (!game.onPlayerJoin(e)) {
         player.sendMessage(Component.text("途中参加のため運営扱いでの参加となります"));
         player.setGameMode(GameMode.SPECTATOR);
         joinAsManager(player);
       }
-    }
-    for (var effect : player.getActivePotionEffects()) {
-      player.removePotionEffect(effect.getType());
     }
   }
 

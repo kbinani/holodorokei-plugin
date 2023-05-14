@@ -69,8 +69,8 @@ public class Game implements PlayerTrackingDelegate {
   private @Nullable BukkitTask katsumokuSeyoNoticeTimer;
   private @Nullable BukkitTask katsumokuSeyoStartTimer;
   private boolean katsumokuActivated = false;
-  private final Map<PotionEffectType, Long> potionsActiveForCopsUntilMillis = new HashMap<>();
-  private final Map<PotionEffectType, Long> potionsActiveForThievesUntilMillis = new HashMap<>();
+  private final Map<NamespacedKey, Long> potionsActiveForCopsUntilMillis = new HashMap<>();
+  private final Map<NamespacedKey, Long> potionsActiveForThievesUntilMillis = new HashMap<>();
   private final Map<Point3i, BukkitTask> witchParticleTimers = new HashMap<>();
   private final Logger logger;
 
@@ -196,7 +196,7 @@ public class Game implements PlayerTrackingDelegate {
       var darknessSeconds = setting.copInitialDelaySeconds;
       var effect = new PotionEffect(PotionEffectType.DARKNESS, darknessSeconds * 20, 1, false);
       p.player.addPotionEffect(effect);
-      potionsActiveForCopsUntilMillis.put(PotionEffectType.DARKNESS, System.currentTimeMillis() + (long) darknessSeconds * 1000);
+      potionsActiveForCopsUntilMillis.put(PotionEffectType.DARKNESS.getKey(), System.currentTimeMillis() + (long) darknessSeconds * 1000);
     });
 
     var y = -54;
@@ -858,11 +858,12 @@ public class Game implements PlayerTrackingDelegate {
   private void applyPotionEffect(PlayerTracking.SkillActivationResult result) {
     if (result.target() == EffectTarget.THIEF) {
       long until = result.activeUntilMillis();
-      var current = potionsActiveForThievesUntilMillis.get(result.effectType());
+      var effectType = result.effectType();
+      var current = potionsActiveForThievesUntilMillis.get(effectType.getKey());
       if (current != null) {
         until = Math.max(until, current);
       }
-      potionsActiveForThievesUntilMillis.put(result.effectType(), until);
+      potionsActiveForThievesUntilMillis.put(effectType.getKey(), until);
 
       var ticks = (int) Math.ceil((until - System.currentTimeMillis()) / 1000.0 * 20);
       if (ticks > 0) {
@@ -871,12 +872,13 @@ public class Game implements PlayerTrackingDelegate {
       }
       logger.log(Level.INFO, "apply potion effect " + result.effectType().getName() + " to thief");
     } else if (result.target() == EffectTarget.COP) {
+      var effectType = result.effectType();
       long until = result.activeUntilMillis();
-      var current = potionsActiveForCopsUntilMillis.get(result.effectType());
+      var current = potionsActiveForCopsUntilMillis.get(effectType.getKey());
       if (current != null) {
         until = Math.max(until, current);
       }
-      potionsActiveForCopsUntilMillis.put(result.effectType(), until);
+      potionsActiveForCopsUntilMillis.put(effectType.getKey(), until);
 
       var ticks = (int) Math.ceil((until - System.currentTimeMillis()) / 1000.0 * 20);
       if (ticks > 0) {
@@ -978,8 +980,9 @@ public class Game implements PlayerTrackingDelegate {
       case THIEF -> {
         for (var entry : potionsActiveForThievesUntilMillis.entrySet()) {
           var ticks = (int) Math.ceil((entry.getValue() - now) / 1000.0 * 20);
-          if (ticks > 0) {
-            var effect = new PotionEffect(entry.getKey(), ticks, 1, false);
+          var effectType = PotionEffectType.getByKey(entry.getKey());
+          if (ticks > 0 && effectType != null) {
+            var effect = new PotionEffect(effectType, ticks, 1, false);
             tracking.player.addPotionEffect(effect);
           }
         }
@@ -987,8 +990,9 @@ public class Game implements PlayerTrackingDelegate {
       case FEMALE_EXECUTIVE, RESEARCHER, CLEANER -> {
         for (var entry : potionsActiveForCopsUntilMillis.entrySet()) {
           var ticks = (int) Math.ceil((entry.getValue() - now) / 1000.0 * 20);
-          if (ticks > 0) {
-            var effect = new PotionEffect(entry.getKey(), ticks, 1, false);
+          var effectType = PotionEffectType.getByKey(entry.getKey());
+          if (ticks > 0 && effectType != null) {
+            var effect = new PotionEffect(effectType, ticks, 1, false);
             tracking.player.addPotionEffect(effect);
           }
         }
