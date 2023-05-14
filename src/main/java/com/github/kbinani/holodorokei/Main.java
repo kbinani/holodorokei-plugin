@@ -2,6 +2,7 @@ package com.github.kbinani.holodorokei;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import io.papermc.paper.event.entity.EntityMoveEvent;
+import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
@@ -251,6 +252,16 @@ public class Main extends JavaPlugin implements Listener, GameDelegate {
       return;
     }
     game.onEntityDamageByEntity(e);
+  }
+
+  @EventHandler
+  public void onPrePlayerAttackEntity(PrePlayerAttackEntityEvent e) {
+    var attacked = e.getAttacked();
+    switch (attacked.getType()) {
+      case MINECART, FOX, ARMOR_STAND, OCELOT, PARROT, PANDA, ALLAY, TROPICAL_FISH -> {
+        e.setCancelled(true);
+      }
+    }
   }
 
   @EventHandler
