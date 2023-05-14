@@ -3,10 +3,7 @@ package com.github.kbinani.holodorokei;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.command.CommandSender;
@@ -56,12 +53,25 @@ public class ShiranuiKensetsuBuilding extends Area {
         return false;
       }
       var pos = new Point3i(block.getLocation());
-      if (pos.equals(kGoalSign)) {
-        e.setCancelled(true);
-        return true;
-      } else {
+      if (!pos.equals(kGoalSign)) {
         return false;
       }
+      e.setCancelled(true);
+      var boxes = new BoundingBox[]{
+        new BoundingBox(35, -45, 30, 38, -34, 35),
+        new BoundingBox(33, -35, 29, 40, -17, 70),
+        new BoundingBox(25, -31, 43, 33, -17, 50),
+        new BoundingBox(40, -32, 60, 47, -17, 65),
+      };
+      final var world = e.getPlayer().getWorld();
+      Players.Within(world, boxes, (player) -> {
+        var mode = player.getGameMode();
+        if (mode == GameMode.SPECTATOR || mode == GameMode.CREATIVE) {
+          return;
+        }
+        player.teleport(new Location(world, 36.5, -45, 68.5));
+      });
+      return true;
     }
 
     @Override

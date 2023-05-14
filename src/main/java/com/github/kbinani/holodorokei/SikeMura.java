@@ -3,10 +3,7 @@ package com.github.kbinani.holodorokei;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.command.CommandSender;
@@ -106,6 +103,10 @@ public class SikeMura extends Area {
       };
       var world = e.getPlayer().getWorld();
       Players.Within(world, boxes, (player -> {
+        var mode = player.getGameMode();
+        if (mode == GameMode.SPECTATOR || mode == GameMode.CREATIVE) {
+          return;
+        }
         player.teleport(new Location(world, 25, -60, -77));
       }));
       return true;
