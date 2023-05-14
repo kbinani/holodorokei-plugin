@@ -221,6 +221,7 @@ public class PlayerTracking {
       if (effectType != null && activeSkillType.target(role) == EffectTarget.SELF) {
         player.removePotionEffect(effectType);
       }
+      activeSkillType = null;
     }
     skillCoolDownMillis = 0;
     skill = null;
