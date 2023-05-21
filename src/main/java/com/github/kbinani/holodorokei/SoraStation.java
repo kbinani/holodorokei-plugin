@@ -69,6 +69,27 @@ public class SoraStation extends Area {
         Member.CHLOE, // 2021/11/29
         Member.IROHA, // 2021/11/30
       }),
+      new Question(new String[]{"フルネームの", "五十音順に", "ボタンを押せ", ""}, new Member[]{
+        Member.IROHA,
+        Member.CHLOE,
+        Member.LUI,
+        Member.KOYO,
+        Member.LAPLUS,
+      }),
+      new Question(new String[]{"3Dお披露目配信の", "早かった順に", "ボタンを押せ", ""}, new Member[]{
+        Member.IROHA, // 2022/6/9
+        Member.CHLOE, // 2022/6/13
+        Member.KOYO, // 2022/6/16
+        Member.LUI, // 2022/6/21
+        Member.LAPLUS, // 2022/6/27
+      }),
+      new Question(new String[]{"", "誕生日の順に", "ボタンを押せ", ""}, new Member[]{
+        Member.KOYO, // 3/15
+        Member.CHLOE, // 5/18
+        Member.LAPLUS, // 5/25
+        Member.LUI, // 6/11
+        Member.IROHA, // 6/18
+      }),
     };
 
     static class Question {
